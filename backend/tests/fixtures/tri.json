@@ -1,0 +1,70 @@
+{
+  "avgSaeb": 248.0,
+  "items_calibrados": [
+    {
+      "a": 1.2,
+      "b": -0.5,
+      "c": 0.2,
+      "index": 0
+    },
+    {
+      "a": 0.9,
+      "b": 0.3,
+      "c": 0.25,
+      "index": 1
+    },
+    {
+      "a": 1.0,
+      "b": 0.51,
+      "c": 0.2,
+      "index": 2
+    },
+    {
+      "a": 1.5,
+      "b": 1.1,
+      "c": 0.15,
+      "index": 3
+    },
+    {
+      "a": 1.0,
+      "b": 0.14,
+      "c": 0.2,
+      "index": 4
+    }
+  ],
+  "scores": {
+    "a1": {
+      "saebScore": 297.5,
+      "theta": 0.95
+    },
+    "a2": {
+      "saebScore": 215.0,
+      "theta": -0.7
+    },
+    "a3": {
+      "saebScore": 450.0,
+      "theta": 4.0
+    },
+    "a4": {
+      "saebScore": 50.0,
+      "theta": -4.0
+    },
+    "a5": {
+      "saebScore": 260.0,
+      "theta": 0.2
+    },
+    "a6": {
+      "saebScore": 238.5,
+      "theta": -0.23
+    },
+    "a7": {
+      "saebScore": 253.5,
+      "theta": 0.07
+    },
+    "a8": {
+      "saebScore": 219.5,
+      "theta": -0.61
+    }
+  },
+  "sucesso": true
+}

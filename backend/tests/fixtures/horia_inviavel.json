@@ -1,0 +1,4 @@
+{
+  "sucesso": false,
+  "mensagem": "Não foi possível gerar o horário com essas restrições.\n\nSugestões:\nNenhum problema específico identificado. Verifique se todas as turmas e matérias estão corretamente associadas e se não há conflitos de horário não modelados."
+}

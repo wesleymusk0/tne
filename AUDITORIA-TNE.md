@@ -303,7 +303,7 @@ Legenda de status: 🟢 funcional (aparente) · 🟡 parcial/risco · 🔴 quebr
 | ID | Funcionalidade | Evidência |
 |---|---|---|
 | OCULTA-001 | Licença legada `tricalc` libera TODOS os sistemas legados | `server.py:59` |
-| OCULTA-002 | Fallback de relaxamento de disponibilidade do HorIA (gera horário violando disponibilidade, minimizando violações) | `resolver_modelo(relaxar_disponibilidade=True)` |
+| OCULTA-002 | Modo de relaxamento de disponibilidade do HorIA (gera horário violando disponibilidade, minimizando violações) — **código latente: implementado em `resolver_modelo(relaxar_disponibilidade=...)`, mas nunca invocado pelo caller** | `server.py:774,781,801,1067,1091` |
 | OCULTA-003 | Migração silenciosa de formatos antigos de dados do HorIA | `expandGrid`, remap de fixos |
 | OCULTA-004 | Índice global `temp_links` (lookup do link de cadastro) | `horia/index.html:871` |
 | OCULTA-005 | Quiosque RemanejIA escreve direto no projeto do dono (sem auth) | `remanejia/index.html:1109` |

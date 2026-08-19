@@ -1,0 +1,62 @@
+{
+  "resultados": {
+    "ah": {
+      "classeCSS": "nivel-baixo",
+      "nivel": "Baixo",
+      "recomendacoes": "Incentivar a curiosidade natural e oferecer desafios de acordo com o currículo."
+    },
+    "di": {
+      "classeCSS": "nivel-alto",
+      "nivel": "Alto",
+      "recomendacoes": [
+        "Elaborar um Plano de Ensino Individualizado (PEI) urgente.",
+        "Trabalhar em colaboração íntima com o profissional do AEE.",
+        "Dividir o aprendizado em passos mínimos (análise de tarefas).",
+        "Utilizar reforço positivo constante para evitar frustração extrema.",
+        "É fortemente sugerido encaminhamento multidisciplinar."
+      ]
+    },
+    "discalculia": {
+      "classeCSS": "nivel-baixo",
+      "nivel": "Baixo",
+      "recomendacoes": "Observar a relação do aluno com a matemática e oferecer reforço básico."
+    },
+    "dislexia": {
+      "classeCSS": "nivel-moderado",
+      "nivel": "Moderado",
+      "recomendacoes": [
+        "Oferecer apoio individual na leitura.",
+        "Usar fontes maiores e com maior espaçamento (ex: OpenDyslexic, Arial 14).",
+        "Ler os enunciados de provas em voz alta para garantir que a dificuldade não mascare o conhecimento.",
+        "Evitar expor o aluno a situações de leitura em voz alta não voluntária."
+      ]
+    },
+    "tdah": {
+      "classeCSS": "nivel-baixo",
+      "nivel": "Baixo",
+      "recomendacoes": "Manter um ambiente organizado com rotinas claras. O aluno demonstra agitação típica da idade."
+    },
+    "tea": {
+      "classeCSS": "nivel-moderado",
+      "nivel": "Moderado",
+      "recomendacoes": [
+        "Utilizar apoios visuais (quadros de rotina).",
+        "Oferecer instruções claras e curtas.",
+        "Proporcionar um espaço tranquilo para autorregulação.",
+        "Incentivar interações sociais mediadas."
+      ]
+    },
+    "tod": {
+      "classeCSS": "nivel-alto",
+      "nivel": "Alto",
+      "recomendacoes": [
+        "Manter a calma absoluta e nunca entrar em disputas de poder ou gritos.",
+        "Estabelecer regras claríssimas, justas e com consequências lógicas e previsíveis.",
+        "Oferecer duas opções aceitáveis para dar um falso senso de controle e autonomia.",
+        "Validar os sentimentos de raiva antes de corrigir a ação.",
+        "Trabalho urgente alinhado entre gestão escolar, família e psicologia externa."
+      ]
+    }
+  },
+  "sucesso": true
+}
