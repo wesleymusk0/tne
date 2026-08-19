@@ -1,0 +1,737 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AvalIA - Ferramenta de Triagem Pedagógica</title>
+    
+    <!-- Fontes e Ícones -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <style>
+        /* CORES ORIGINAIS DO AVALIA + VARIÁVEL PARA CO‑BRANDING */
+        :root {
+            --primary: #E67E22;
+            --primary-dark: #8D4004;
+            --primary-light: #FAE5D3;
+            --secondary: #F39C12;
+            --danger: #D35400;
+            --success: #27AE60;
+            --info: #2980B9;
+            --warning: #F5B041;
+            
+            --bg: #FEFBF6;
+            --surface: #ffffff;
+            --text-main: #3D3D3D;
+            --text-muted: #666666;
+            --border-color: #DCD5CC;
+            --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+            --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            --radius-md: 8px;
+            --radius-lg: 12px;
+
+            /* Co‑branding: cor que pode ser sobrescrita pela escola */
+            --primary-active: var(--cor-primaria-inst, var(--primary));
+
+            /* Cores específicas de resultado do AvalIA */
+            --nivel-baixo-fundo: #FDF2E9;
+            --nivel-baixo-borda: #FABD7A;
+            --nivel-moderado-fundo: #FAE5D3;
+            --nivel-moderado-borda: #F39C12;
+            --nivel-alto-fundo: #F5B7B1;
+            --nivel-alto-borda: #D35400;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        body { 
+            font-family: 'Inter', sans-serif; 
+            line-height: 1.6; 
+            background-color: var(--bg); 
+            color: var(--text-main); 
+            -webkit-font-smoothing: antialiased; 
+            padding-bottom: 70px;
+        }
+
+        /* ==========================================
+           LOGIN (ESTRUTURA MODERNA)
+           ========================================== */
+        .login-wrapper { display: flex; justify-content: center; align-items: center; min-height: 100vh; padding: 20px; }
+        #login-view { display: block; } /* Controlado via JS */
+        
+        .login-container { width: 100%; max-width: 420px; padding: 40px; background: var(--surface); box-shadow: var(--shadow-md); border-radius: var(--radius-lg); text-align: center; }
+        .login-container h2 { color: var(--primary-active); margin-bottom: 20px; display: flex; align-items: center; justify-content: center; gap: 10px; font-size: 1.8rem; }
+        .login-container h2 i { color: var(--primary-active); }
+        
+        .form-group { margin-bottom: 1.2em; text-align: left; }
+        .form-group label { display: block; color: var(--text-muted); margin-bottom: 0.5em; font-weight: 600; font-size: 0.9rem;}
+        .login-input { width: 100%; padding: 12px; margin-bottom: 5px; border: 1px solid var(--border-color); border-radius: var(--radius-md); box-sizing: border-box; background-color: #f9fafb; transition: 0.2s; font-family: inherit; font-size: 1rem; }
+        .login-input:focus { outline: none; border-color: var(--primary-active); box-shadow: 0 0 0 3px rgba(230, 126, 34, 0.2); }
+        
+        .account-list { list-style: none; padding: 0; margin: 0 0 15px 0; max-height: 200px; overflow-y: auto; border: 1px solid var(--border-color); border-radius: var(--radius-md); text-align: left; }
+        .account-item { display: flex; justify-content: space-between; align-items: center; padding: 12px 15px; border-bottom: 1px solid var(--border-color); cursor: pointer; transition: 0.2s; }
+        .account-item:last-child { border-bottom: none; }
+        .account-item:hover { background-color: var(--primary-light); }
+        .remove-account-btn { background: none; border: none; color: var(--danger); font-size: 1.2rem; cursor: pointer; }
+        .remove-account-btn:hover { color: #A94400; }
+        
+        .login-options { margin-top: 15px; }
+        .login-options button { background: none; border: none; color: var(--primary-active); cursor: pointer; font-weight: 500; font-size: 0.95rem; }
+        .login-options button:hover { text-decoration: underline; }
+
+        /* ==========================================
+           BOTÕES GERAIS (usando --primary-active)
+           ========================================== */
+        button, .action-btn, .btn-like { padding: 10px 20px; border: none; border-radius: var(--radius-md); font-weight: 600; cursor: pointer; transition: all 0.2s ease; font-size: 0.95rem; font-family: inherit; display: inline-flex; align-items: center; justify-content: center; gap: 8px; text-decoration: none;}
+        .btn-primary { background: var(--primary-active); color: white; }
+        .btn-primary:hover:not(:disabled) { background: var(--primary-dark); transform: translateY(-1px); box-shadow: var(--shadow-sm); }
+        .btn-secondary { background: var(--secondary); color: white; }
+        .btn-secondary:hover:not(:disabled) { background: #D4890B; }
+        .btn-danger { background: var(--danger); color: white; }
+        .btn-danger:hover:not(:disabled) { background: #A94400; }
+        .btn-info { background: var(--info); color: white; }
+        .btn-info:hover:not(:disabled) { background: #1F618D; }
+        .btn-success { background: var(--success); color: white; }
+        .btn-success:hover:not(:disabled) { background: #229954; }
+        .btn-block { width: 100%; display: block; }
+        button:disabled { opacity: 0.6; cursor: not-allowed; transform: none; box-shadow: none; }
+
+        .info-box { background-color: var(--primary-light); border-left: 4px solid var(--warning); padding: 15px; margin-bottom: 20px; border-radius: 4px; font-size: 0.95em; color: var(--text-main); line-height: 1.5; }
+
+        /* ==========================================
+           APP PRINCIPAL (LAYOUT MODERNO)
+           ========================================== */
+        #app-container { display: none; max-width: 1000px; margin: 30px auto; padding: 0 20px; }
+        
+        header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; border-bottom: 2px solid var(--primary-active); padding-bottom: 15px;}
+        header h1 { color: var(--primary-active); margin: 0; font-size: 1.8rem; display: flex; align-items: center; gap: 12px; }
+        header h1 i { color: var(--primary-active); }
+        #logo-instituicao { height: 40px; vertical-align: middle; display: none; border-radius: 4px; }
+        
+        .card { background: var(--surface); border-radius: var(--radius-lg); padding: 25px; box-shadow: var(--shadow-sm); border: 1px solid var(--border-color); margin-bottom: 20px; }
+        
+        .tool-actions { display: flex; gap: 15px; flex-wrap: wrap; margin-bottom: 20px; background: #fff9f2; padding: 15px; border-radius: var(--radius-lg); border: 1px solid var(--primary-light);}
+        #inputCarregar { display: none; }
+
+        /* Estilização do Formulário Dinâmico */
+        #triagemForm fieldset { background: var(--surface); border: 1px solid var(--border-color); border-radius: var(--radius-lg); padding: 25px; margin-bottom: 25px; box-shadow: var(--shadow-sm); }
+        #triagemForm legend { font-size: 1.2rem; font-weight: bold; color: var(--surface); background: var(--primary-active); padding: 8px 15px; border-radius: var(--radius-md); box-shadow: var(--shadow-sm); margin-left: -10px; }
+        
+        .pergunta-container { margin-bottom: 1.5rem; padding-bottom: 1.5rem; border-bottom: 1px dashed var(--border-color); }
+        .pergunta-container:last-child { border-bottom: none; margin-bottom: 0; padding-bottom: 0;}
+        .pergunta-texto { display: block; margin-bottom: 1rem; font-weight: 600; font-size: 1.05rem; color: var(--text-main); }
+        
+        .opcoes-container { display: flex; flex-wrap: wrap; gap: 1rem; }
+        .opcoes-container label { display: flex; align-items: center; cursor: pointer; padding: 0.6rem 1.2rem; border: 1px solid var(--border-color); border-radius: 20px; transition: 0.2s; background: #f9fafb; font-weight: 500; font-size: 0.95rem; color: var(--text-muted);}
+        .opcoes-container label:hover { background-color: var(--primary-light); border-color: var(--primary-active); color: var(--primary-dark);}
+        .opcoes-container input[type="radio"] { margin-right: 0.5rem; accent-color: var(--primary-active); transform: scale(1.2); }
+
+        .btn-submit { display: block; width: 100%; padding: 15px; font-size: 1.2rem; font-weight: bold; margin-top: 10px; background: var(--primary-active); color: white; }
+        .btn-submit:hover { background: var(--primary-dark); }
+
+        /* Resultados */
+        #resultadoContainer { display: none; background: var(--surface); border-radius: var(--radius-lg); padding: 30px; box-shadow: var(--shadow-md); border: 2px solid var(--primary-active); margin-top: 30px; animation: fadeIn 0.5s; }
+        #resultadoContainer h2 { text-align: center; color: var(--primary-active); margin-bottom: 25px; font-size: 1.6rem; border-bottom: 2px solid var(--primary-light); padding-bottom: 15px;}
+        
+        .area-resultado { margin-bottom: 20px; padding: 20px; border-radius: 8px; border-left: 6px solid; background: #fff; box-shadow: var(--shadow-sm);}
+        .area-resultado h3 { margin-top: 0; margin-bottom: 10px; color: var(--text-main); font-size: 1.2rem;}
+        
+        .resultado-sumario { display: flex; justify-content: space-between; align-items: center; font-weight: bold; margin-bottom: 15px; padding-bottom: 10px; border-bottom: 1px solid #eee;}
+        .resultado-nivel { padding: 4px 12px; border-radius: 20px; font-size: 0.95rem; border: 1px solid; }
+        
+        .nivel-baixo { background-color: var(--nivel-baixo-fundo); border-left-color: var(--nivel-baixo-borda); }
+        .nivel-baixo .resultado-nivel { background-color: #fff; border-color: var(--nivel-baixo-borda); color: #d68910; }
+        
+        .nivel-moderado { background-color: var(--nivel-moderado-fundo); border-left-color: var(--nivel-moderado-borda); }
+        .nivel-moderado .resultado-nivel { background-color: #fff; border-color: var(--nivel-moderado-borda); color: var(--danger); }
+        
+        .nivel-alto { background-color: var(--nivel-alto-fundo); border-left-color: var(--nivel-alto-borda); }
+        .nivel-alto .resultado-nivel { background-color: #fff; border-color: var(--nivel-alto-borda); color: #c0392b; }
+        
+        .recomendacoes ul { list-style-position: outside; padding-left: 20px; margin-top: 10px; color: var(--text-muted);}
+        .recomendacoes li { margin-bottom: 5px; }
+        
+        .aviso-final { margin-top: 30px; padding: 15px; text-align: center; font-weight: bold; background-color: var(--primary-light); border: 1px solid var(--warning); border-radius: 8px; color: var(--primary-dark); }
+        
+        /* Botão extra inserido via JS no resultado */
+        .print-result-btn { margin-top: 20px; width: 100%; background: var(--primary-active); color: white; }
+        .print-result-btn:hover { background: var(--primary-dark); }
+
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+        /* OVERLAYS DE MANUTENÇÃO */
+        #maintenance-overlay { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(10, 10, 20, 0.95); color: #fff; display: none; flex-direction: column; justify-content: center; align-items: center; z-index: 99999; text-align: center; backdrop-filter: blur(5px); }
+        .maintenance-content { background: rgba(22, 33, 62, 0.9); padding: 40px; border-radius: var(--radius-lg); box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5); border: 1px solid rgba(255, 255, 255, 0.1); max-width: 90%; width: 500px; }
+        .maintenance-timer { font-size: 3.5em; font-weight: bold; color: var(--danger); margin: 20px 0; text-shadow: 0 0 10px rgba(233, 69, 96, 0.5); }
+        #maintenance-banner { position: fixed; top: 0; left: 0; width: 100%; background-color: var(--warning); color: #000; padding: 10px 20px; z-index: 99998; display: none; justify-content: center; align-items: center; box-shadow: var(--shadow-md); font-size: 0.9em; font-weight: 600;}
+        .maintenance-banner-content { display: flex; align-items: center; gap: 15px; flex-wrap: wrap; justify-content: center; }
+
+        @media print {
+            body { padding: 0; background-color: #fff; }
+            #login-view, header, .tool-actions, #triagemForm, .info-box, #maintenance-overlay, #maintenance-banner, .print-result-btn { display: none !important; }
+            #app-container { box-shadow: none; border: none; padding: 0; display: block !important; max-width: 100%; margin: 0;}
+            #resultadoContainer { display: block !important; border: none; margin-top: 0; padding: 0; box-shadow: none;}
+            .area-resultado { border: 1px solid #ddd; box-shadow: none; page-break-inside: avoid; background: #fff !important; }
+            .nivel-baixo, .nivel-moderado, .nivel-alto { background-color: #fff !important; border-left-color: #000 !important; }
+            .aviso-final { border: 1px solid #ddd; background-color: #f9f9f9; }
+        }
+
+        @media (max-width: 768px) {
+            body { padding: 10px; align-items: flex-start; }
+            #app-container { padding: 15px; margin-top: 10px; }
+            header { flex-direction: column; gap: 15px; text-align: center; }
+            .tool-actions { flex-direction: column; }
+            .tool-actions button, .tool-actions .btn-like { width: 100%; }
+            #triagemForm fieldset { padding: 15px; }
+            .opcoes-container label { width: 100%; }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- ==========================================
+         VIEW DE LOGIN
+         ========================================== -->
+    <div id="login-view" class="login-wrapper">
+        <div class="login-container">
+            <h2><i class="fa-solid fa-clipboard-user"></i> AvalIA</h2>
+            
+            <div id="account-chooser" style="display: block;">
+                <p style="color: var(--text-muted); margin-bottom: 15px; font-weight: 500;">Selecione uma conta salva</p>
+                <ul id="account-list" class="account-list"></ul>
+                <div class="login-options">
+                    <button onclick="showLoginForm()"><i class="fas fa-plus"></i> Usar outra conta</button>
+                </div>
+            </div>
+            
+            <div id="password-prompt" style="display: none;">
+                <p style="color: var(--text-muted); margin-bottom: 15px;">Digite a senha para:<br><strong id="prompt-email" class="selected-email" style="color: var(--text-main);"></strong></p>
+                <div class="form-group">
+                    <input type="password" id="prompt-password" class="login-input" placeholder="Sua senha" required />
+                </div>
+                <button class="btn-primary btn-block" onclick="loginWithPassword()"><i class="fas fa-sign-in-alt"></i> Entrar</button>
+                <div class="login-options">
+                    <button onclick="showAccountChooser()">Voltar para seleção</button>
+                </div>
+            </div>
+            
+            <div id="login-form" style="display: none;">
+                <p style="color: var(--text-muted); margin-bottom: 15px; font-weight: 500;">Acesse a triagem pedagógica</p>
+                <div class="form-group">
+                    <label for="sso-email">E-mail:</label>
+                    <input type="email" id="sso-email" class="login-input" placeholder="seu@email.com" required />
+                </div>
+                <div class="form-group">
+                    <label for="password">Senha:</label>
+                    <input type="password" id="password" class="login-input" placeholder="••••••••" required />
+                </div>
+                <button class="btn-primary btn-block" onclick="loginFromForm()"><i class="fas fa-sign-in-alt"></i> Entrar</button>
+                <div class="login-options">
+                    <button id="back-to-chooser-btn" onclick="showAccountChooser()" style="display: none;">Voltar para seleção</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ==========================================
+         APP PRINCIPAL
+         ========================================== -->
+    <main id="app-container">
+        <header>
+            <h1>
+                <i class="fa-solid fa-clipboard-user"></i>
+                <!-- Logo da instituição (co‑branding) -->
+                <img id="logo-instituicao" src="" alt="Logo da Instituição">
+                AvalIA
+            </h1>
+            <div id="user-info" style="display: flex; align-items: center; gap: 10px;">
+                <!-- Preenchido via JS -->
+                <button id="btnLogout" class="action-btn btn-danger"><i class="fas fa-sign-out-alt"></i> Sair</button>
+            </div>
+        </header>
+
+        <div class="info-box">
+            <i class="fas fa-exclamation-triangle" style="color: var(--danger); font-size: 1.2em; margin-right: 5px;"></i>
+            <strong>Atenção:</strong> Esta é uma ferramenta de triagem pedagógica para uso interno. 
+            <strong>Não fornece diagnóstico clínico</strong> e não substitui a avaliação por profissionais de saúde qualificados. 
+            Seu objetivo é sistematizar a observação do educador, apoiar a personalização pedagógica e indicar a necessidade de atenção individualizada. Trate todas as observações com empatia, cuidado e confidencialidade.
+        </div>
+
+        <section class="tool-actions">
+            <button id="btnSalvarNuvem" class="btn-success"><i class="fas fa-cloud-upload-alt"></i> Salvar na Nuvem</button>
+            <button id="btnCarregarNuvem" class="btn-info"><i class="fas fa-cloud-download-alt"></i> Carregar da Nuvem</button>
+            <button id="btnSalvar" class="btn-primary"><i class="fas fa-save"></i> Salvar Progresso (JSON)</button>
+            <label for="inputCarregar" class="btn-like action-btn" style="background-color: var(--info); margin: 0;"><i class="fas fa-upload"></i> Carregar Progresso</label>
+            <input type="file" id="inputCarregar" accept=".json">
+            <button id="btnImprimir" class="btn-secondary"><i class="fas fa-print"></i> Imprimir Formulário</button>
+        </section>
+
+        <!-- Formulário Dinâmico -->
+        <form id="triagemForm">
+            <!-- Os fieldsets serão injetados aqui via JavaScript -->
+            <button type="submit" class="action-btn btn-submit"><i class="fas fa-chart-pie"></i> Gerar Relatório Preliminar</button>
+        </form>
+
+        <!-- Container de Resultados -->
+        <div id="resultadoContainer"></div>
+    </main>
+
+    <!-- Rodapé com identidade Systematrix (sempre visível) -->
+    <footer style="text-align: center; padding: 20px; color: var(--text-muted); font-size: 0.9em;">
+        AvalIA &copy; <span style="color: var(--sys-primary); font-weight: 600;">Systematrix</span> | 2026
+    </footer>
+
+    <!-- ==========================================
+         OVERLAYS DE MANUTENÇÃO
+         ========================================== -->
+    <div id="maintenance-overlay">
+        <div class="maintenance-content">
+            <div id="maintenance-warning-phase" style="display: none;">
+                <h2 style="color: var(--warning);"><i class="fas fa-exclamation-triangle"></i> Alerta de Manutenção</h2>
+                <p>O sistema entrará em manutenção em breve. Você tem o tempo abaixo para salvar seus dados.</p>
+                <div id="maintenance-initial-timer" class="maintenance-timer">1:30</div>
+            </div>
+            <div id="maintenance-countdown-phase" style="display: none;">
+                <h2 style="color: var(--warning);">Manutenção Iminente</h2>
+                <p id="maintenance-countdown-message">Notificação de tempo restante. Período <span id="maintenance-period-counter">1</span> de 3.</p>
+                <div id="maintenance-countdown-timer" class="maintenance-timer">5:00</div>
+                <button id="maintenance-ready-btn" class="btn-primary">Estou Pronto</button>
+            </div>
+            <div id="maintenance-locked-phase" style="display: none;">
+                <h1 style="color: var(--danger);"><i class="fas fa-lock"></i> Em Manutenção</h1>
+                <p>O sistema está temporariamente indisponível. Por favor, volte mais tarde.</p>
+            </div>
+        </div>
+    </div>
+    <div id="maintenance-banner" style="display: none;">
+        <div class="maintenance-banner-content">
+            <span id="maintenance-banner-message"><strong>Alerta:</strong> Manutenção programada. Salve seu trabalho. Tempo restante:</span>
+            <span id="maintenance-banner-timer" class="maintenance-timer-small">1:00</span>
+            <button id="maintenance-banner-ready-btn" class="action-btn btn-danger" style="padding: 4px 10px; font-size: 0.85em;">Entrar Agora</button>
+        </div>
+    </div>
+
+    <!-- ==========================================
+         LÓGICA JAVASCRIPT DO AVALIA (COM CO‑BRANDING)
+         ========================================== -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/9.15.0/firebase-app.js";
+        import { getAuth, onAuthStateChanged, signInWithEmailAndPassword, signOut } from "https://www.gstatic.com/firebasejs/9.15.0/firebase-auth.js";
+        import { getDatabase, ref, onValue, get, push, set, serverTimestamp } from "https://www.gstatic.com/firebasejs/9.15.0/firebase-database.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyB3p0DvbtoDNI0WUPrly4PdLwmsbn_jNUU",
+            authDomain: "systematrix-apps.firebaseapp.com",
+            databaseURL: "https://systematrix-apps-default-rtdb.firebaseio.com",
+            projectId: "systematrix-apps",
+            storageBucket: "systematrix-apps.firebasestorage.app",
+            messagingSenderId: "932627354123",
+            appId: "1:932627354123:web:f310c9babd17db8ac26d0e",
+            measurementId: "G-LF6FC7BDB6"
+        };
+        const app = initializeApp(firebaseConfig, "app");
+        const auth = getAuth(app); const db = getDatabase(app);
+
+        const loginContainer = document.getElementById('login-view');
+        const appContainer = document.getElementById('app-container');
+        const btnLogout = document.getElementById('btnLogout');
+        let isAppInitialized = false;
+
+        const localStorageKey = "systematrixSSOAccounts_avalIA";
+        let selectedAccountEmail = null; let currentUserProfile = null; 
+        let unsubscribeMaintenance = null; let maintenanceInterval = null; let maintenanceSequenceStarted = false;
+
+        async function logActionToRTDB(system, action, userId) {
+            if (!currentUserProfile || !currentUserProfile.schoolId) return;
+
+            const adminsRef = ref(db, `admins_por_instituicao/${currentUserProfile.schoolId}`);
+            const snap = await get(adminsRef);
+            if (!snap.exists()) return;
+
+            const adminsObj = snap.val();
+            const adminUIDs = Object.keys(adminsObj);
+
+            const logsRef = ref(db, `logs_atividades/${currentUserProfile.schoolId}`);
+            push(logsRef, {
+                acao: `Ação no ${system}`,
+                detalhe: action,
+                autorUid: adminUIDs[0],
+                professorUid: auth.currentUser.uid,
+                timestamp: serverTimestamp()
+            });
+        }
+
+        // --- Lógica de Contas e UI Login ---
+        function getRememberedAccounts() { try { const stored = localStorage.getItem(localStorageKey); const accs = stored ? JSON.parse(stored) : []; return Array.isArray(accs) ? accs : []; } catch (e) { return []; } }
+        function saveAccount(email) { let accs = getRememberedAccounts().filter(a => a !== email); accs.unshift(email); localStorage.setItem(localStorageKey, JSON.stringify(accs)); }
+        function removeAccount(email) { if (!confirm(`Remover conta ${email}?`)) return; localStorage.setItem(localStorageKey, JSON.stringify(getRememberedAccounts().filter(a => a !== email))); loadAccountChooser(); }
+
+        function loadAccountChooser() {
+            const accs = getRememberedAccounts(), listUl = document.getElementById("account-list");
+            if (!listUl) return; listUl.innerHTML = ""; document.getElementById("password-prompt").style.display = "none";
+            if (accs.length > 0) {
+                accs.forEach(email => {
+                    const li = document.createElement("li"); li.className = "account-item";
+                    li.innerHTML = `<span class="account-email">${email}</span> <button class="remove-account-btn" onclick="event.stopPropagation(); removeAccount('${email}')"><i class="fas fa-trash"></i></button>`;
+                    li.onclick = () => handleAccountClick(email);
+                    listUl.appendChild(li);
+                });
+                document.getElementById("account-chooser").style.display = "block"; document.getElementById("login-form").style.display = "none";
+                const backBtn = document.getElementById("back-to-chooser-btn"); if (backBtn) backBtn.style.display = "inline-block";
+            } else {
+                document.getElementById("account-chooser").style.display = "none"; document.getElementById("login-form").style.display = "block";
+                const backBtn = document.getElementById("back-to-chooser-btn"); if (backBtn) backBtn.style.display = "none";
+            }
+        }
+        function showAccountChooser() { document.getElementById("account-chooser").style.display = "block"; document.getElementById("password-prompt").style.display = "none"; document.getElementById("login-form").style.display = "none"; const b = document.getElementById("back-to-chooser-btn"); if (b) b.style.display = getRememberedAccounts().length > 0 ? "inline-block" : "none"; }
+        function showLoginForm() { document.getElementById("account-chooser").style.display = "none"; document.getElementById("password-prompt").style.display = "none"; document.getElementById("login-form").style.display = "block"; const b = document.getElementById("back-to-chooser-btn"); if (b) b.style.display = getRememberedAccounts().length > 0 ? "inline-block" : "none"; }
+        function handleAccountClick(email) { selectedAccountEmail = email; document.getElementById("account-chooser").style.display = "none"; document.getElementById("login-form").style.display = "none"; document.getElementById("password-prompt").style.display = "block"; document.getElementById("prompt-email").textContent = email; document.getElementById("prompt-password").value = ""; document.getElementById("prompt-password").focus(); }
+
+        function performLogin(email, password) { signInWithEmailAndPassword(auth, email, password).then(() => saveAccount(email)).catch(err => alert("Erro ao fazer login: " + err.message)); }
+        function loginFromForm() { const e = document.getElementById("sso-email").value.trim(), p = document.getElementById("password").value; if (!e || !p) return alert("Preencha email e senha."); performLogin(e, p); }
+        function loginWithPassword() { const p = document.getElementById("prompt-password").value; if (!selectedAccountEmail) return showAccountChooser(); if (!p) return alert("Digite a senha."); performLogin(selectedAccountEmail, p); }
+        function logout() { signOut(auth).catch(e => alert("Erro ao sair.")); }
+
+        window.showLoginForm = showLoginForm; window.loginFromForm = loginFromForm; window.loginWithPassword = loginWithPassword; window.showAccountChooser = showAccountChooser; window.handleAccountClick = handleAccountClick; window.removeAccount = removeAccount;
+
+        // ==========================================
+        // AUTENTICAÇÃO + CO‑BRANDING INSTITUCIONAL
+        // ==========================================
+        onAuthStateChanged(auth, (user) => {
+            if (user) {
+                // 1. Tentar carregar perfil institucional
+                get(ref(db, 'usuarios_institucionais/' + user.uid)).then((snap) => {
+                    if (snap.exists() && snap.val().sistemasAcesso && snap.val().sistemasAcesso.includes('avalia')) {
+                        if (snap.val().status !== "ativo") { alert('Sem acesso ao AvalIA.'); logout(); return; }
+                        const instData = snap.val();
+                        const instituicaoId = instData.instituicaoId;
+                        if (instituicaoId) {
+                            currentUserProfile = {
+                                email: user.email,
+                                schoolId: instituicaoId,
+                                institutional: true
+                            };
+
+                            // 2. Carregar personalização da instituição
+                            get(ref(db, 'instituicoes/' + instituicaoId + '/personalizacao')).then((persSnap) => {
+                                if (persSnap.exists()) {
+                                    const pers = persSnap.val();
+                                    if (pers.corPrimaria) {
+                                        document.documentElement.style.setProperty('--cor-primaria-inst', pers.corPrimaria);
+                                    }
+                                    if (pers.logoUrl) {
+                                        const logoImg = document.getElementById('logo-instituicao');
+                                        if (logoImg) {
+                                            logoImg.src = pers.logoUrl;
+                                            logoImg.style.display = 'inline';
+                                        }
+                                    }
+                                }
+                                // Acesso liberado para institucional
+                                loginContainer.style.display = 'none';
+                                appContainer.style.display = 'block';
+                                updateUserBadge(user.email);
+                                
+                                if (!isAppInitialized) { initializeAppLogic(user); isAppInitialized = true; }
+                                listenForMaintenance();
+                            }).catch((err) => {
+                                console.error("Erro ao carregar personalização:", err);
+                                loginContainer.style.display = 'none';
+                                appContainer.style.display = 'block';
+                                updateUserBadge(user.email);
+                                if (!isAppInitialized) { initializeAppLogic(user); isAppInitialized = true; }
+                                listenForMaintenance();
+                            });
+                        } else {
+                            handleLegacyUser(user);
+                        }
+                    } else if (!snap.exists() || !snap.val().sistemasAcesso || !snap.val().sistemasAcesso.includes('avalia')) {
+                            alert('Sem acesso ao AvalIA.'); logout(); return;
+                    } else {
+                        handleLegacyUser(user);
+                    }
+                }).catch((err) => {
+                    console.error("Erro ao verificar usuário institucional:", err);
+                    handleLegacyUser(user);
+                });
+            } else {
+                // Logout
+                currentUserProfile = null;
+                isAppInitialized = false;
+                loginContainer.style.display = 'flex';
+                appContainer.style.display = 'none';
+                loadAccountChooser();
+                // Reseta co‑branding
+                document.documentElement.style.removeProperty('--cor-primaria-inst');
+                const logoImg = document.getElementById('logo-instituicao');
+                if (logoImg) {
+                    logoImg.src = '';
+                    logoImg.style.display = 'none';
+                }
+                if (unsubscribeMaintenance) { unsubscribeMaintenance(); unsubscribeMaintenance = null; }
+                deactivateFullMaintenanceMode();
+            }
+        });
+
+        function handleLegacyUser(user) {
+            get(ref(db, 'users/' + user.uid)).then((snap) => {
+                if (snap.exists() && snap.val().acquiredSystems && snap.val().acquiredSystems.includes('AvalIA')) {
+                    currentUserProfile = snap.val();
+                    currentUserProfile.uid = user.uid;
+                    loginContainer.style.display = 'none';
+                    appContainer.style.display = 'block';
+                    updateUserBadge(user.email);
+                    
+                    if (!isAppInitialized) { initializeAppLogic(user); isAppInitialized = true; }
+                    listenForMaintenance();
+                } else {
+                    alert('Sem acesso ao AvalIA.');
+                    logout();
+                }
+            }).catch((err) => {
+                console.error("Erro ao buscar perfil legacy:", err);
+                alert('Erro ao carregar perfil.');
+                logout();
+            });
+        }
+
+        function updateUserBadge(email) {
+            const userInfoEl = document.getElementById("user-info");
+            if (!userInfoEl.querySelector('.user-badge')) {
+                const badge = document.createElement("span");
+                badge.className = "user-badge";
+                badge.style.cssText = "background:var(--primary-light); color:var(--primary-dark); font-weight:bold; padding: 6px 12px; border-radius: 4px; font-size: 0.9em; border:1px solid var(--primary-active);";
+                badge.textContent = email;
+                userInfoEl.insertBefore(badge, userInfoEl.firstChild);
+            }
+        }
+
+        btnLogout.addEventListener('click', logout);
+
+        // --- Manutenção (inalterada) ---
+        function formatTime(s) { return `${Math.floor(s/60)}:${(s%60).toString().padStart(2,'0')}`; }
+        function activateFullMaintenanceMode() { clearInterval(maintenanceInterval); maintenanceInterval = null; document.getElementById('maintenance-overlay').style.display = 'flex'; document.getElementById('maintenance-warning-phase').style.display = 'none'; document.getElementById('maintenance-countdown-phase').style.display = 'none'; document.getElementById('maintenance-banner').style.display = 'none'; document.getElementById('maintenance-locked-phase').style.display = 'block'; }
+        function deactivateFullMaintenanceMode() { const o = document.getElementById('maintenance-overlay'), b = document.getElementById('maintenance-banner'); if (o) o.style.display = 'none'; if (b) b.style.display = 'none'; if (maintenanceInterval) { clearInterval(maintenanceInterval); maintenanceInterval = null; } }
+        function startFinalCountdownPeriods(p) { if (p > 3) { activateFullMaintenanceMode(); return; } document.getElementById('maintenance-warning-phase').style.display = 'none'; document.getElementById('maintenance-countdown-phase').style.display = 'block'; document.getElementById('maintenance-period-counter').textContent = p; document.getElementById('maintenance-overlay').style.display = 'flex'; let t = 300; maintenanceInterval = setInterval(() => { t--; document.getElementById('maintenance-countdown-timer').textContent = formatTime(t); document.getElementById('maintenance-banner-timer').textContent = formatTime(t); if (t <= 0) { clearInterval(maintenanceInterval); startFinalCountdownPeriods(p + 1); } }, 1000); }
+        function startMaintenanceSequence() { if (maintenanceSequenceStarted) return; maintenanceSequenceStarted = true; document.getElementById('maintenance-locked-phase').style.display = 'none'; document.getElementById('maintenance-countdown-phase').style.display = 'none'; document.getElementById('maintenance-warning-phase').style.display = 'block'; document.getElementById('maintenance-overlay').style.display = 'flex'; let t = 90; maintenanceInterval = setInterval(() => { t--; document.getElementById('maintenance-initial-timer').textContent = formatTime(t); document.getElementById('maintenance-banner-timer').textContent = formatTime(t); if (t === 80) { document.getElementById('maintenance-overlay').style.display = 'none'; document.getElementById('maintenance-banner').style.display = 'flex'; } if (t <= 0) { clearInterval(maintenanceInterval); document.getElementById('maintenance-banner').style.display = 'none'; startFinalCountdownPeriods(1); } }, 1000); }
+        function listenForMaintenance() {
+            if (unsubscribeMaintenance) return;
+            unsubscribeMaintenance = onValue(ref(db, 'config/manutencao'), (snap) => {
+                if (snap.val() === true && !maintenanceSequenceStarted) { startMaintenanceSequence(); } 
+                else if (snap.val() === false && maintenanceSequenceStarted) { if (maintenanceInterval) clearInterval(maintenanceInterval); maintenanceInterval = null; maintenanceSequenceStarted = false; deactivateFullMaintenanceMode(); const b = document.getElementById('maintenance-banner'); b.style.backgroundColor = '#4CAF50'; document.getElementById('maintenance-banner-message').textContent = 'Manutenção concluída!'; document.getElementById('maintenance-banner-timer').style.display = 'none'; document.getElementById('maintenance-banner-ready-btn').style.display = 'none'; b.style.display = 'flex'; setTimeout(() => b.style.display = 'none', 5000); }
+            });
+        }
+
+        // --- LÓGICA DO AVALIA (Perguntas, Pontuação e Relatório) ---
+        function initializeAppLogic(user) {
+            document.getElementById('maintenance-ready-btn').addEventListener('click', activateFullMaintenanceMode);
+            document.getElementById('maintenance-banner-ready-btn').addEventListener('click', activateFullMaintenanceMode);
+
+            const DADOS_TRIAGEM = { 
+                perguntas: [ 
+                    { codigo: 'tea', titulo: 'Possíveis Indícios de TEA', questoes: ["Demonstra dificuldade em iniciar ou manter uma conversa?", "Evita ou tem dificuldade em manter contato visual?", "Apresenta dificuldade em compreender gestos, expressões faciais ou tom de voz?", "Mostra interesses muito restritos, intensos e específicos?", "Apega-se a rotinas de forma rígida, com desconforto em mudanças?", "Realiza movimentos corporais repetitivos (balançar, bater palmas) sem um propósito aparente?", "Demonstra sensibilidade sensorial incomum (a sons, luzes, texturas)?", "Brinca de forma repetitiva ou pouco imaginativa (ex: enfileirar objetos)?", "Tem dificuldade em entender o ponto de vista de outra pessoa ou em brincadeiras de faz de conta?", "Usa a linguagem de forma literal, com dificuldade para entender ironias ou metáforas?", "Parece isolar-se socialmente ou prefere brincar sozinho?", "Responde de forma incomum a estímulos afetivos (abraços, carinhos)?", "Demonstra uma memória excepcional para fatos ou detalhes específicos de seu interesse?", "Tem dificuldade em adaptar seu comportamento a diferentes contextos sociais?", "Apresenta padrões de fala incomuns (ecolalia, tom de voz monótono)?"] }, 
+                    { codigo: 'tdah', titulo: 'Possíveis Indícios de TDAH', questoes: ["Parece não ouvir quando falam diretamente com ele(a)?", "Tem dificuldade para manter a atenção em tarefas ou atividades lúdicas?", "Comete erros por descuido em atividades escolares?", "Frequentemente perde materiais necessários para tarefas (lápis, livros)?", "É facilmente distraído(a) por estímulos externos?", "Agita as mãos ou os pés ou se remexe na cadeira constantemente?", "Tem dificuldade de permanecer sentado(a) em sala de aula?", "Interrompe ou se intromete nas conversas e atividades de outros?", "Dá respostas precipitadas antes que as perguntas sejam concluídas?", "Tem dificuldade em esperar sua vez em filas ou jogos?", "Corre ou sobe nas coisas em situações inapropriadas?", "Fala excessivamente?", "Tem dificuldade em organizar tarefas e atividades?", "Esquece-se de atividades diárias ou de entregar recados?", "Parece estar sempre 'a mil por hora' ou 'ligado no 220'?"] }, 
+                    { codigo: 'di', titulo: 'Possíveis Indícios de DI', questoes: ["Apresenta um ritmo de aprendizagem notavelmente mais lento que os colegas?", "Tem dificuldade em compreender conceitos abstratos (tempo, dinheiro)?", "Demonstra dificuldade em seguir instruções com múltiplos passos?", "Necessita de repetições e exemplos concretos para aprender?", "Apresenta vocabulário limitado ou dificuldades na estruturação de frases?", "Mostra dificuldade em resolver problemas cotidianos simples?", "Tem dificuldade com habilidades sociais, como iniciar amizades?", "Demonstra imaturidade no autocuidado ou autonomia para a idade?", "Apresenta dificuldades significativas com a memória de curto e longo prazo?", "Aprende habilidades práticas (amarrar sapatos) muito mais tarde que o esperado?", "Tem dificuldade em generalizar um aprendizado para outras situações?", "Mostra pouco interesse ou curiosidade em explorar o ambiente?", "A compreensão de leitura é significativamente inferior à esperada para a idade?", "Tem dificuldade em entender regras de jogos ou brincadeiras em grupo?", "Necessita de supervisão constante para realizar tarefas que seus pares fazem sozinhos?"] }, 
+                    { codigo: 'ah', titulo: 'Possíveis Indícios de AH/SD', questoes: ["Demonstra um vocabulário avançado e complexo para a idade?", "Aprende novos conceitos com rapidez e pouca necessidade de repetição?", "Mostra curiosidade intensa e faz perguntas profundas e investigativas?", "Apresenta um raciocínio lógico ou habilidade para resolver problemas complexos?", "Tem um senso de humor sofisticado ou entende ironias precocemente?", "Demonstra grande capacidade de concentração em áreas de seu interesse?", "Possui memória excepcional para detalhes ou informações?", "Mostra grande criatividade ou originalidade na resolução de problemas?", "Prefere a companhia de colegas mais velhos ou adultos?", "É perfeccionista e muito autocrítico(a) com seu próprio desempenho?", "Mostra sensibilidade e preocupação com questões sociais ou morais?", "Lê de forma fluente e compreensiva muito antes do esperado para a idade?", "Demonstra liderança natural entre os colegas?", "Fica entediado(a) facilmente com tarefas rotineiras ou simples?", "Desenvolve seus próprios projetos ou investigações sem ser solicitado?"] }, 
+                    { codigo: 'dislexia', titulo: 'Possíveis Indícios de Dislexia', questoes: ["Apresenta dificuldade persistente para aprender a ler?", "Comete trocas, omissões ou inversões de letras e sílabas ao ler e escrever (ex: 'b' por 'd')?", "Demonstra uma leitura lenta, silabada e com pouco respeito à pontuação?", "Tem dificuldade em associar letras aos seus respectivos sons?", "Mostra dificuldade em soletrar palavras, mesmo as mais comuns?", "A caligrafia é irregular ou de difícil compreensão?", "Tem dificuldade em memorizar sequências (alfabeto, meses do ano)?", "Evita atividades que envolvem leitura em voz alta?", "A compreensão do texto lido é prejudicada pela dificuldade de decodificação?", "Tem um bom raciocínio e vocabulário oral, mas seu desempenho na escrita não reflete isso?"] }, 
+                    { codigo: 'discalculia', titulo: 'Possíveis Indícios de Discalculia', questoes: ["Tem dificuldade em entender o conceito de números e quantidades (o que é 'mais' ou 'menos')?", "Mostra dificuldade em contar e memorizar a sequência numérica?", "Confunde símbolos matemáticos (+, -, x, ÷)?", "Apresenta dificuldade em realizar cálculos básicos (adição, subtração)?", "Tem dificuldade para lembrar fatos numéricos, como a tabuada?", "Mostra dificuldade em lidar com dinheiro ou estimar troco?", "Tem problemas para entender conceitos de tempo (ler as horas, calendário)?", "Apresenta dificuldade em alinhar números para realizar operações matemáticas?", "Tem dificuldade em seguir sequências ou padrões lógicos?", "Demonstra ansiedade elevada ou aversão a atividades que envolvem matemática?"] }, 
+                    { codigo: 'tod', titulo: 'Possíveis Indícios de TOD', questoes: ["Frequentemente perde a calma ou se irrita com facilidade?", "Discute ou confronta figuras de autoridade (professores, pais) de forma recorrente?", "Desafia ou se recusa ativamente a cumprir regras ou pedidos de adultos?", "Incomoda deliberadamente outras pessoas?", "Culpa os outros por seus próprios erros ou mau comportamento?", "É rancoroso(a) ou vingativo(a)?", "Demonstra uma atitude negativa, hostil ou desafiadora na maior parte do tempo?", "Mostra-se sensível ou facilmente incomodado(a) pelos outros?", "Questiona regras de forma excessiva e argumentativa?", "O padrão de comportamento negativo é mais frequente e intenso do que o de outras crianças da mesma idade?"] }
+                ], 
+                recomendacoes: { 
+                    tea: { baixo: "Continue observando e oferecendo um ambiente acolhedor.", moderado: ["Utilizar apoios visuais (quadros de rotina).", "Oferecer instruções claras e curtas.", "Proporcionar um espaço tranquilo para autorregulação.", "Incentivar interações sociais mediadas."], alto: ["Implementar rotinas visuais e previsíveis.", "Antecipar mudanças na rotina.", "Adaptar o ambiente para minimizar sobrecargas sensoriais.", "Utilizar os interesses restritos do aluno como porta de entrada para o aprendizado.", "É fortemente sugerido discutir as observações com a coordenação e a família para um possível encaminhamento profissional."] }, 
+                    tdah: { baixo: "Manter um ambiente organizado com rotinas claras.", moderado: ["Dividir tarefas em etapas menores.", "Permitir pequenas pausas ou movimentos.", "Posicionar o aluno longe de distrações.", "Usar reforço positivo."], alto: ["Estabelecer um sistema de recompensas claro.", "Utilizar organizadores gráficos e listas.", "Combinar instruções verbais com escritas.", "Proporcionar atividades que envolvam movimento.", "É fortemente sugerido discutir as observações com a coordenação e a família para um possível encaminhamento profissional."] }, 
+                    di: { baixo: "Garantir instruções claras e oferecer ajuda quando necessário.", moderado: ["Usar materiais concretos e exemplos práticos.", "Repetir instruções e verificar a compreensão.", "Oferecer mais tempo para atividades.", "Focar em habilidades funcionais."], alto: ["Elaborar um Plano de Ensino Individualizado (PEI).", "Trabalhar em colaboração com o AEE.", "Dividir o aprendizado em passos muito pequenos (análise de tarefas).", "Utilizar reforço positivo constante.", "É fortemente sugerido discutir as observações com a coordenação e a família para um possível encaminhamento profissional."] }, 
+                    ah: { baixo: "Incentivar a curiosidade e oferecer desafios.", moderado: ["Oferecer atividades de aprofundamento.", "Promover projetos que permitam criatividade.", "Permitir que o aluno avance em seu próprio ritmo.", "Incentivar participação em olimpíadas de conhecimento."], alto: ["Desenvolver estratégias de enriquecimento curricular.", "Facilitar o acesso a mentores.", "Trabalhar o desenvolvimento socioemocional (perfeccionismo, frustração).", "Agrupar o aluno com pares de habilidade semelhante para projetos.", "Discutir com a coordenação e a família programas de aceleração ou enriquecimento."] }, 
+                    dislexia: { baixo: "Estar atento às dificuldades de leitura e escrita.", moderado: ["Oferecer apoio individual na leitura.", "Usar fontes maiores e mais limpas (ex: OpenDyslexic).", "Ler enunciados de provas em voz alta.", "Evitar expor o aluno com leitura em voz alta não voluntária."], alto: ["Utilizar abordagem fonológica, multissensorial e explícita.", "Permitir o uso de tecnologias assistivas (leitores de tela, softwares de voz-para-texto).", "Oferecer mais tempo em avaliações e focar no conteúdo em vez da ortografia.", "Valorizar a expressão oral e outras formas de conhecimento.", "É fortemente sugerido encaminhar para avaliação psicopedagógica e fonoaudiológica."] }, 
+                    discalculia: { baixo: "Observar a relação do aluno com a matemática.", moderado: ["Utilizar jogos e atividades lúdicas para ensinar matemática.", "Disponibilizar recursos visuais (retas numéricas, ábacos).", "Verificar a compreensão dos enunciados dos problemas.", "Ser paciente e reforçar o esforço."], alto: ["Usar materiais concretos e manipuláveis para ensinar conceitos.", "Permitir o uso de calculadora e tabela de tabuada.", "Dividir problemas matemáticos em etapas menores.", "Relacionar a matemática com situações do dia a dia.", "É fortemente sugerido encaminhar para avaliação psicopedagógica especializada."] }, 
+                    tod: { baixo: "Manter um bom vínculo e comunicação positiva.", moderado: ["Ignorar comportamentos de busca de atenção de baixa intensidade.", "Elogiar publicamente e corrigir em particular.", "Antecipar situações que podem ser gatilhos para comportamentos desafiadores.", "Revisar as regras e expectativas com o aluno."], alto: ["Manter a calma e não entrar em disputas de poder.", "Estabelecer regras claras, consistentes e com consequências previsíveis.", "Oferecer escolhas limitadas para dar um senso de autonomia.", "Reforçar positivamente os comportamentos desejados.", "É fundamental um trabalho alinhado entre escola e família."] } 
+                } 
+            };
+
+            const form = document.getElementById('triagemForm'); 
+            const btnSalvar = document.getElementById('btnSalvar'); 
+            const inputCarregar = document.getElementById('inputCarregar'); 
+            const btnImprimir = document.getElementById('btnImprimir');
+            const btnSalvarNuvem = document.getElementById('btnSalvarNuvem');
+            const btnCarregarNuvem = document.getElementById('btnCarregarNuvem');
+
+            function renderizarPerguntas() { 
+                const formContent = DADOS_TRIAGEM.perguntas.map(grupo => { 
+                    const questoesHtml = grupo.questoes.map((questao, index) => { 
+                        const questaoId = `${grupo.codigo}-q${index}`; 
+                        // NOTA: O atributo "required" foi removido daqui
+                        return ` <div class="pergunta-container"> <span class="pergunta-texto">${index + 1}. ${questao}</span> <div class="opcoes-container"> <label for="${questaoId}-0"><input type="radio" id="${questaoId}-0" name="${questaoId}" value="0"> Nunca</label> <label for="${questaoId}-1"><input type="radio" id="${questaoId}-1" name="${questaoId}" value="1"> Às vezes</label> <label for="${questaoId}-2"><input type="radio" id="${questaoId}-2" name="${questaoId}" value="2"> Frequentemente</label> <label for="${questaoId}-3"><input type="radio" id="${questaoId}-3" name="${questaoId}" value="3"> Sempre</label> </div> </div> `; 
+                    }).join(''); 
+                    return `<fieldset><legend><i class="fas fa-clipboard-check"></i> ${grupo.titulo}</legend>${questoesHtml}</fieldset>`; 
+                }).join(''); 
+                form.insertAdjacentHTML('afterbegin', formContent); 
+            } 
+
+            function calcularResultados(gruposValidos) { 
+                const pontuacoes = {}; 
+                DADOS_TRIAGEM.perguntas.forEach(grupo => { 
+                    if(gruposValidos.includes(grupo.codigo)) {
+                        pontuacoes[grupo.codigo] = 0; 
+                        grupo.questoes.forEach((_, index) => { 
+                            const questaoId = `${grupo.codigo}-q${index}`; 
+                            const resposta = form.querySelector(`input[name="${questaoId}"]:checked`); 
+                            if (resposta) pontuacoes[grupo.codigo] += parseInt(resposta.value, 10); 
+                        }); 
+                    }
+                }); 
+                return pontuacoes; 
+            } 
+
+            function gerarRelatorio(pontuacoes, gruposValidos) { 
+                const resultadoContainer = document.getElementById('resultadoContainer'); 
+                let relatorioHtml = `<h2><i class="fas fa-file-contract"></i> Relatório Pedagógico Preliminar</h2>`; 
+                
+                DADOS_TRIAGEM.perguntas.forEach(grupo => { 
+                    if(!gruposValidos.includes(grupo.codigo)) return; // Exibe apenas os grupos validados/preenchidos
+
+                    const pontuacao = pontuacoes[grupo.codigo]; 
+                    const pontuacaoMaxima = grupo.questoes.length * 3; 
+                    const percentual = pontuacaoMaxima > 0 ? (pontuacao / pontuacaoMaxima) * 100 : 0; 
+                    let nivel, nivelClasse, recomendacao; 
+                    
+                    if (percentual < 40) { nivel = 'Baixo'; nivelClasse = 'nivel-baixo'; recomendacao = DADOS_TRIAGEM.recomendacoes[grupo.codigo].baixo; } 
+                    else if (percentual <= 70) { nivel = 'Moderado'; nivelClasse = 'nivel-moderado'; recomendacao = DADOS_TRIAGEM.recomendacoes[grupo.codigo].moderado; } 
+                    else { nivel = 'Alto'; nivelClasse = 'nivel-alto'; recomendacao = DADOS_TRIAGEM.recomendacoes[grupo.codigo].alto; } 
+                    
+                    const recomendacaoHtml = Array.isArray(recomendacao) ? `<ul>${recomendacao.map(item => `<li>${item}</li>`).join('')}</ul>` : `<p>${recomendacao}</p>`; 
+                    relatorioHtml += ` <div class="area-resultado ${nivelClasse}"> <h3>${grupo.titulo}</h3> <div class="resultado-sumario"> <span>Nível de atenção pedagógica:</span> <span class="resultado-nivel">${nivel}</span> </div> <div class="recomendacoes"><strong>Sugestões Pedagógicas:</strong>${recomendacaoHtml}</div> </div>`; 
+                }); 
+                
+                relatorioHtml += `<div class="aviso-final"><i class="fas fa-info-circle"></i> Lembre-se: este relatório é um ponto de partida. Recomenda-se que a família busque avaliação profissional especializada caso os sinais persistam.</div>`; 
+                relatorioHtml += `<button class="action-btn btn-primary print-result-btn" onclick="window.print()"><i class="fas fa-print"></i> Imprimir Relatório Completo</button>`;
+                
+                resultadoContainer.innerHTML = relatorioHtml; 
+                resultadoContainer.style.display = 'block'; 
+                resultadoContainer.scrollIntoView({ behavior: 'smooth' }); 
+                logActionToRTDB('AvalIA', 'Relatório de triagem gerado', user.uid);
+            } 
+
+            function salvarProgresso() { 
+                const progresso = {}; const inputs = form.querySelectorAll('input[type="radio"]:checked'); 
+                if (inputs.length === 0) return alert("Por favor, responda pelo menos uma pergunta para salvar o progresso."); 
+                inputs.forEach(input => { progresso[input.name] = input.value; }); 
+                const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(progresso)); 
+                const downloadAnchorNode = document.createElement('a'); downloadAnchorNode.setAttribute("href", dataStr); downloadAnchorNode.setAttribute("download", "progresso_triagem_avalia.json"); document.body.appendChild(downloadAnchorNode); downloadAnchorNode.click(); downloadAnchorNode.remove(); alert("Progresso salvo! Guarde o arquivo .json para carregar depois."); 
+            } 
+
+            function carregarProgresso(event) { 
+                const file = event.target.files[0]; if (!file) return; const reader = new FileReader(); 
+                reader.onload = function(e) { 
+                    try { 
+                        const progresso = JSON.parse(e.target.result); 
+                        for (const name in progresso) { 
+                            const value = progresso[name]; const radio = form.querySelector(`input[name="${name}"][value="${value}"]`); 
+                            if (radio) radio.checked = true; 
+                        } 
+                        alert("Progresso carregado com sucesso!"); 
+                    } catch (error) { alert("Erro ao carregar o arquivo. Verifique se é um arquivo de progresso válido."); } 
+                }; 
+                reader.readAsText(file); event.target.value = null; 
+            }
+            
+            async function saveToCloud() {
+                if (!auth.currentUser) return alert("Você precisa estar logado para salvar na nuvem.");
+                const uid = auth.currentUser.uid;
+                const progresso = {};
+                const inputs = document.querySelectorAll('#triagemForm input[type="radio"]:checked');
+                if (inputs.length === 0) return alert("Por favor, responda pelo menos uma pergunta para salvar.");
+                inputs.forEach(input => { progresso[input.name] = input.value; });
+
+                try {
+                    await set(ref(db, `dados_avalia/${uid}`), progresso);
+                    alert("Progresso salvo na nuvem com sucesso!");
+                    logActionToRTDB('AvalIA', 'Progresso salvo na nuvem', uid);
+                } catch (error) {
+                    alert("Erro ao salvar na nuvem: " + error.message);
+                }
+            }
+
+            async function loadFromCloud() {
+                if (!auth.currentUser) return alert("Você precisa estar logado para carregar da nuvem.");
+                if (!confirm("Isso substituirá o progresso atual. Deseja continuar?")) return;
+                const uid = auth.currentUser.uid;
+                
+                try {
+                    const snapshot = await get(ref(db, `dados_avalia/${uid}`));
+                    if (snapshot.exists()) {
+                        const progresso = snapshot.val();
+                        document.querySelectorAll('#triagemForm input[type="radio"]:checked').forEach(radio => radio.checked = false);
+                        for (const name in progresso) {
+                            const value = progresso[name];
+                            const radio = document.querySelector(`#triagemForm input[name="${name}"][value="${value}"]`);
+                            if (radio) radio.checked = true;
+                        }
+                        alert("Progresso carregado da nuvem com sucesso!");
+                        logActionToRTDB('AvalIA', 'Progresso carregado da nuvem', uid);
+                    } else {
+                        alert("Nenhum progresso salvo na nuvem foi encontrado.");
+                    }
+                } catch (error) {
+                    alert("Erro ao carregar da nuvem: " + error.message);
+                }
+            }
+
+            function imprimirRelatorio() { 
+                const resultadoContainer = document.getElementById('resultadoContainer'); 
+                if (window.getComputedStyle(resultadoContainer).display === 'none') return alert("Gere o relatório antes de imprimir."); 
+                window.print(); 
+            } 
+
+            form.addEventListener('submit', (event) => { 
+                event.preventDefault(); 
+                
+                let gruposValidos = [];
+                let gruposIncompletos = false;
+
+                // Varre os quadros avaliando as respostas
+                DADOS_TRIAGEM.perguntas.forEach(grupo => {
+                    let respondidas = 0;
+                    grupo.questoes.forEach((_, index) => {
+                        const questaoId = `${grupo.codigo}-q${index}`;
+                        if (form.querySelector(`input[name="${questaoId}"]:checked`)) {
+                            respondidas++;
+                        }
+                    });
+                    
+                    if (respondidas === grupo.questoes.length) {
+                        gruposValidos.push(grupo.codigo); // Quadro 100% preenchido
+                    } else if (respondidas > 0) {
+                        gruposIncompletos = true; // Quadro parcialmente preenchido
+                    }
+                });
+
+                // Validação de regras de preenchimento
+                if (gruposValidos.length === 0) {
+                    alert("Por favor, responda todas as perguntas de pelo menos UM dos quadros (transtornos) para gerar o relatório.");
+                    return;
+                }
+
+                if (gruposIncompletos) {
+                    const continuar = confirm("Você deixou alguns quadros incompletos (respondidos parcialmente). Apenas os quadros 100% preenchidos farão parte do relatório. Deseja continuar?");
+                    if (!continuar) return;
+                }
+
+                const pontuacoes = calcularResultados(gruposValidos); 
+                gerarRelatorio(pontuacoes, gruposValidos); 
+            }); 
+
+            btnSalvar.addEventListener('click', salvarProgresso); 
+            inputCarregar.addEventListener('change', carregarProgresso); 
+            btnImprimir.addEventListener('click', imprimirRelatorio); 
+            btnSalvarNuvem.addEventListener('click', saveToCloud);
+            btnCarregarNuvem.addEventListener('click', loadFromCloud);
+            
+            // Só renderiza se o form estiver vazio
+            if(!form.querySelector('fieldset')) renderizarPerguntas();
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,1423 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RemanejIA - Enturmação Inteligente</title>
+    
+    <!-- Fontes e Ícones -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- SDKs do Firebase -->
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+    <!-- SheetJS -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+
+    <style>
+        :root {
+            --primary: #4f46e5;
+            --primary-dark: #3730a3;
+            --primary-light: #e0e7ff;
+            --secondary: #f59e0b;
+            --danger: #ef4444;
+            --success: #10b981;
+            --bg: #f3f4f6;
+            --surface: #ffffff;
+            --text-main: #1f2937;
+            --text-muted: #6b7280;
+            --border-color: #e5e7eb;
+            --shadow-sm: 0 1px 2px 0 rgba(0,0,0,0.05);
+            --shadow-md: 0 4px 6px -1px rgba(0,0,0,0.1), 0 2px 4px -1px rgba(0,0,0,0.06);
+            --radius-md: 8px;
+            --radius-lg: 12px;
+            --primary-active: var(--cor-primaria-inst, var(--primary));
+        }
+
+        * { box-sizing: border-box; }
+        
+        body { font-family: 'Inter', sans-serif; line-height: 1.6; margin: 0; background-color: var(--bg); color: var(--text-main); -webkit-font-smoothing: antialiased; }
+
+        /* Login SSO Styles */
+        #login-view { display: flex; justify-content: center; align-items: center; min-height: 100vh; padding: 20px; }
+        #login-container { width: 100%; max-width: 400px; padding: 40px; background: var(--surface); box-shadow: var(--shadow-md); border-radius: var(--radius-lg); text-align: center; }
+        #login-container h2 { color: var(--text-main); margin-bottom: 20px; display: flex; align-items: center; justify-content: center; gap: 10px; font-size: 1.8rem; }
+        #login-container h2 i { color: var(--primary-active); }
+        .login-input { width: 100%; padding: 12px; margin-bottom: 15px; border: 1px solid var(--border-color); border-radius: var(--radius-md); box-sizing: border-box; background-color: #f9fafb; transition: 0.2s; }
+        .login-input:focus { outline: none; border-color: var(--primary-active); box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.2); }
+        .account-item:hover { background-color: var(--primary-light); border-color: var(--primary-active); }
+
+        /* Buttons */
+        button, .button { padding: 10px 20px; border: none; border-radius: var(--radius-md); font-weight: 600; cursor: pointer; transition: all 0.2s ease; font-size: 0.95rem; font-family: inherit; display: inline-flex; align-items: center; justify-content: center; gap: 8px; }
+        .btn-primary { background: var(--primary-active); color: white; }
+        .btn-primary:hover { background: var(--primary-dark); transform: translateY(-1px); box-shadow: var(--shadow-sm); }
+        .btn-danger { background: var(--danger); color: white; }
+        .btn-danger:hover { background: #dc2626; }
+        .btn-secondary { background: var(--text-muted); color: white; }
+        .btn-secondary:hover { background: var(--text-main); }
+        .btn-info { background: #0ea5e9; color: white; }
+        .btn-info:hover { background: #0284c7; }
+        .btn-outline { background: transparent; border: 1px solid var(--border-color); color: var(--text-muted); }
+        .btn-outline:hover { background: var(--bg); color: var(--text-main); }
+        .btn-block { width: 100%; display: block; }
+        .btn-edit { background: #f59e0b; color: white; }
+        .btn-edit:hover { background: #d97706; }
+
+        /* App Principal */
+        .container { max-width: 1400px; margin: 30px auto; padding: 30px; }
+        header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; flex-wrap: wrap; gap: 10px; }
+        header h1 { color: var(--text-main); margin: 0; font-size: 2rem; display: flex; align-items: center; gap: 12px; }
+        header h1 i { color: var(--primary-active); }
+        #header-actions { display: flex; align-items: center; gap: 10px; }
+
+        #logo-instituicao { height: 40px; vertical-align: middle; display: none; border-radius: 4px; }
+
+        .tab-buttons { display: flex; gap: 5px; margin-bottom: 25px; background: #e5e7eb; border-radius: var(--radius-md); padding: 5px; flex-wrap: wrap; }
+        .tab-button { background: none; border: none; padding: 10px 15px; cursor: pointer; font-size: 0.9rem; color: var(--text-muted); transition: 0.3s; font-weight: 600; flex: 1; border-radius: 6px; }
+        .tab-button:hover { color: var(--text-main); }
+        .tab-button.active { color: var(--text-main); background: var(--surface); box-shadow: var(--shadow-sm); }
+        .tab-panel { display: none; animation: fadeIn 0.4s; }
+        .tab-panel.active { display: block; }
+
+        .card { background: var(--surface); border-radius: var(--radius-lg); padding: 25px; box-shadow: var(--shadow-sm); border: 1px solid var(--border-color); margin-bottom: 20px; }
+        .card h2, .card h3 { margin-top: 0; color: var(--text-main); font-size: 1.3rem; }
+
+        .form-row { display: flex; gap: 20px; flex-wrap: wrap; align-items: flex-end; }
+        .form-group { flex: 1; min-width: 150px; }
+        label { display: block; margin-bottom: 8px; font-weight: 500; font-size: 0.85rem; color: var(--text-muted); }
+        input, select { width: 100%; padding: 10px; border: 1px solid var(--border-color); border-radius: var(--radius-md); font-size: 1rem; box-sizing: border-box; background: #f9fafb; }
+        input:focus, select:focus { outline: none; border-color: var(--primary-active); box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.2); }
+
+        .list-container { max-height: 450px; overflow-y: auto; }
+        .list-item { background: #f9fafb; padding: 12px 15px; margin-bottom: 8px; border-radius: var(--radius-md); border-left: 4px solid var(--primary-light); display: flex; justify-content: space-between; align-items: center; transition: 0.2s; }
+        .list-item:hover { border-left-color: var(--primary-active); background: #f3f4f6; }
+        .list-item-actions { display: flex; gap: 8px; }
+        
+        #newClassesOutput { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 20px; }
+        .class-column { background: var(--bg); border: 1px solid var(--border-color); border-radius: var(--radius-lg); display: flex; flex-direction: column; }
+        .class-header { background: var(--primary-dark); color: white; padding: 15px; border-radius: var(--radius-lg) var(--radius-lg) 0 0; }
+        .class-header h3 { margin: 0; font-size: 1.1rem; }
+        .class-stats { font-size: 0.8rem; margin-top: 5px; display: flex; gap: 8px; flex-wrap: wrap; }
+        .badge { padding: 3px 10px; border-radius: 12px; background: rgba(255,255,255,0.15); font-weight: 500; }
+        
+        .student-draggable-list { padding: 15px; min-height: 100px; list-style: none; margin: 0; flex-grow: 1; transition: background-color 0.3s; }
+        .student-card { background: var(--surface); padding: 12px; margin-bottom: 10px; border-radius: var(--radius-md); border: 1px solid var(--border-color); cursor: grab; box-shadow: var(--shadow-sm); transition: all 0.2s; }
+        .student-card:active { cursor: grabbing; transform: scale(0.95); box-shadow: var(--shadow-md); }
+        .student-card .student-main { display: flex; justify-content: space-between; align-items: center; font-weight: 600; }
+        .student-card .meta { font-size: 0.75rem; color: var(--text-muted); margin-top: 5px; display: flex; justify-content: space-between; align-items: center; border-top: 1px solid #f3f4f6; padding-top: 5px; }
+        .student-card .relations-status { display: flex; gap: 6px; }
+        .student-card.dragging { opacity: 0.5; transform: rotate(3deg); }
+        
+        .satisfaction-container { background: var(--surface); border-radius: var(--radius-lg); margin: 20px 0; padding: 20px; border: 1px solid var(--border-color); }
+        .progress-bg { background: var(--border-color); border-radius: 20px; height: 12px; width: 100%; overflow: hidden; }
+        .progress-fill { height: 100%; width: 0%; transition: width 1s ease-in-out; }
+        .sat-details { display: grid; grid-template-columns: repeat(3, 1fr); font-size: 0.9rem; margin-top: 15px; color: var(--text-muted); text-align: center; }
+        
+        .tag-gender-m { color: #2563eb; }
+        .tag-gender-f { color: #db2777; }
+        .rel-icon-ok { color: var(--success); }
+        .rel-icon-bad { color: var(--danger); }
+        .priority-group label { font-weight: 500; }
+
+        /* Overlay do Quiosque */
+        .kiosk-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: #f3f4f6;
+            z-index: 9999;
+            display: none;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+            overflow-y: auto;
+        }
+        .kiosk-overlay.active { display: flex; }
+        .kiosk-card {
+            background: white;
+            border-radius: 20px;
+            padding: 40px 30px;
+            width: 100%;
+            max-width: 650px;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.1);
+            text-align: center;
+        }
+        .kiosk-card h2 {
+            font-size: 2rem;
+            color: var(--primary);
+            margin-bottom: 5px;
+        }
+        .kiosk-card .subtitle {
+            color: var(--text-muted);
+            margin-bottom: 25px;
+            font-size: 1.1rem;
+        }
+        .kiosk-select {
+            width: 100%;
+            padding: 14px;
+            font-size: 1.1rem;
+            border-radius: 10px;
+            border: 1px solid var(--border-color);
+            margin-bottom: 25px;
+        }
+        .kiosk-columns {
+            display: grid;
+            gap: 20px;
+            text-align: left;
+            margin-bottom: 25px;
+        }
+        .kiosk-columns.col2 { grid-template-columns: 1fr 1fr; }
+        .kiosk-columns.col1 { grid-template-columns: 1fr; max-width: 350px; margin-left: auto; margin-right: auto; }
+        .kiosk-checklist {
+            border: 1px solid var(--border-color);
+            border-radius: 10px;
+            padding: 10px;
+            max-height: 200px;
+            overflow-y: auto;
+            background: #fafafa;
+        }
+        .kiosk-checklist label {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 6px 0;
+            font-size: 0.95rem;
+        }
+        .kiosk-checklist input { width: auto; margin: 0; }
+        .kiosk-btn {
+            background: var(--primary);
+            color: white;
+            font-size: 1.2rem;
+            padding: 14px 30px;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            width: 100%;
+            font-weight: 700;
+            margin-top: 10px;
+        }
+        .kiosk-btn:hover { background: var(--primary-dark); }
+        .kiosk-close {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: white;
+            border: none;
+            font-size: 1.5rem;
+            border-radius: 50%;
+            width: 45px;
+            height: 45px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            cursor: pointer;
+        }
+        .kiosk-feedback {
+            margin-top: 20px;
+            padding: 12px;
+            border-radius: 10px;
+            font-weight: 600;
+            display: none;
+        }
+        .kiosk-feedback.success {
+            background: #d1fae5;
+            color: #065f46;
+            display: block;
+        }
+        .kiosk-feedback.error {
+            background: #fee2e2;
+            color: #991b1b;
+            display: block;
+        }
+        .kiosk-empty-message {
+            color: var(--text-muted);
+            font-style: italic;
+            padding: 20px;
+        }
+        
+        #toast { visibility: hidden; min-width: 250px; background-color: var(--text-main); color: #fff; text-align: center; border-radius: var(--radius-md); padding: 16px; position: fixed; z-index: 999; left: 50%; bottom: 30px; transform: translateX(-50%); box-shadow: var(--shadow-md); transition: all 0.5s; opacity: 0; }
+        #toast.show { visibility: visible; bottom: 50px; opacity: 1; }
+
+        dialog { border: none; border-radius: var(--radius-lg); box-shadow: 0 10px 25px rgba(0,0,0,0.2); padding: 25px; width: 90%; max-width: 600px; }
+        dialog::backdrop { background: rgba(0,0,0,0.5); backdrop-filter: blur(4px); }
+        
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+
+        @media (max-width: 768px) {
+            body { padding: 10px; }
+            .container { padding: 15px; }
+            header { flex-direction: column; gap: 15px; text-align: center; }
+            .form-row { flex-direction: column; align-items: stretch; }
+            .kiosk-columns.col2 { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- VIEW DE LOGIN (SSO) -->
+    <div id="login-view">
+        <div id="login-container">
+            <h2><i class="fa-solid fa-people-arrows"></i> RemanejIA</h2>
+            <div id="account-chooser" style="display:none;">
+                <ul id="account-list"></ul>
+                <button class="btn-outline btn-block" onclick="showLoginForm()"><i class="fas fa-plus"></i> Usar outra conta</button>
+            </div>
+            <div id="password-prompt" style="display:none;">
+                <p id="prompt-email" style="font-weight:bold; margin:10px 0;"></p>
+                <input type="password" id="prompt-password" class="login-input" placeholder="Sua senha">
+                <button class="btn-primary btn-block" onclick="loginWithPassword()">Entrar</button>
+                <button class="btn-outline btn-block" onclick="showAccountChooser()">Voltar</button>
+            </div>
+            <div id="login-form">
+                <input type="email" id="sso-email" class="login-input" placeholder="E-mail">
+                <input type="password" id="password" class="login-input" placeholder="Senha">
+                <button class="btn-primary btn-block" onclick="loginFromForm()">Entrar</button>
+                <button id="back-to-chooser-btn" class="btn-outline btn-block" style="display:none;" onclick="showAccountChooser()">Voltar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- APP PRINCIPAL -->
+    <div id="main-app-container" class="container" style="display: none;">
+        <header>
+            <h1>
+                <i class="fa-solid fa-people-arrows"></i>
+                <img id="logo-instituicao" src="" alt="Logo da Instituição">
+                RemanejIA
+            </h1>
+            <div id="user-info"></div>
+        </header>
+
+        <div class="tab-buttons">
+            <button class="tab-button active" onclick="openTab('tabConfig')"><i class="fas fa-cogs"></i> Configuração</button>
+            <button class="tab-button" onclick="openTab('tabAlunos')"><i class="fas fa-user-plus"></i> Alunos</button>
+            <button class="tab-button" onclick="openTab('tabRelacoes')"><i class="fas fa-users"></i> Relações</button>
+            <button class="tab-button" onclick="openTab('tabResultados')"><i class="fas fa-wand-magic-sparkles"></i> Gerar & Avaliar</button>
+        </div>
+
+        <!-- 1. Config -->
+        <div id="tabConfig" class="tab-panel active">
+            <div class="card">
+                <h2>Configurações da Geração</h2>
+                <div class="form-row">
+                    <div class="form-group" style="max-width: 200px;">
+                        <label>Número de Turmas Finais:</label>
+                        <input type="number" id="numNewClasses" value="3" min="1" max="20">
+                    </div>
+                    <!-- Novo controle de intensidade -->
+                    <div class="form-group" style="flex: 2;">
+                        <label>Intensidade do Embaralhamento:</label>
+                        <input type="range" id="shuffleIntensity" min="0" max="100" value="50" step="1"
+                               oninput="document.getElementById('shuffleValue').textContent = this.value + '%'">
+                        <div style="display: flex; justify-content: space-between; font-size: 0.8rem; color: var(--text-muted);">
+                            <span>Manter turmas originais</span>
+                            <span>Embaralhar totalmente</span>
+                        </div>
+                        <span id="shuffleValue" style="font-weight: bold; color: var(--primary);">50%</span>
+                    </div>
+                    <div class="form-group">
+                        <label>Prioridades da Otimização (foco do algoritmo):</label>
+                        <div class="priority-group" style="padding: 15px; display: flex; justify-content: space-around;">
+                            <label class="checkbox-label"><input type="checkbox" id="prioMandatory" checked> <i class="fa-solid fa-gavel"></i> Regras Rígidas</label>
+                            <label class="checkbox-label"><input type="checkbox" id="prioPreferences"> <i class="fa-solid fa-heart"></i> Preferências</label>
+                            <label class="checkbox-label"><input type="checkbox" id="prioBalance"> <i class="fa-solid fa-scale-balanced"></i> Balanceamento</label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="card">
+                <h2>Configuração do Quiosque</h2>
+                <p style="color: var(--text-muted); margin-bottom: 15px;">Defina quais opções os alunos poderão preencher no link do quiosque.</p>
+                <div class="form-row" style="justify-content: flex-start; gap: 30px;">
+                    <label class="checkbox-label" style="display: flex; align-items: center; gap: 10px; font-size: 1rem;">
+                        <input type="checkbox" id="kioskShowFriends" checked> <i class="fas fa-user-friends"></i> Exibir campo "Amigos"
+                    </label>
+                    <label class="checkbox-label" style="display: flex; align-items: center; gap: 10px; font-size: 1rem;">
+                        <input type="checkbox" id="kioskShowEnemies" checked> <i class="fas fa-user-slash"></i> Exibir campo "Inimigos"
+                    </label>
+                </div>
+            </div>
+            <!-- NOVO CARD: Link do Quiosque -->
+            <div class="card" id="kioskLinkCard" style="display: none;">
+                <h2>Link do Quiosque</h2>
+                <p style="color: var(--text-muted); margin-bottom: 15px;">Compartilhe este link com os alunos para que preencham suas relações.</p>
+                <div class="form-row" style="align-items: center;">
+                    <div class="form-group" style="flex: 1;">
+                        <input type="text" id="kioskLinkInput" readonly style="background: #f0f0f0; cursor: text;" value="">
+                    </div>
+                    <button class="btn-primary" onclick="copiarLinkQuiosque()" style="height: 42px;">
+                        <i class="fas fa-copy"></i> Copiar
+                    </button>
+                </div>
+                <small id="kioskLinkCopied" style="color: var(--success); display: none;">Link copiado!</small>
+            </div>
+             <div class="card">
+                <h2>Dados do Projeto</h2>
+                <div class="form-row">
+                    <button class="btn-primary" onclick="saveToCloud()"><i class="fas fa-cloud-upload-alt"></i> Salvar na Nuvem</button>
+                    <button class="btn-info" onclick="loadFromCloud()"><i class="fas fa-cloud-download-alt"></i> Carregar da Nuvem</button>
+                    <button class="btn-outline" onclick="saveConfiguration()"><i class="fas fa-download"></i> Salvar JSON (Local)</button>
+                    <label class="button btn-secondary" style="cursor:pointer;">
+                        <i class="fas fa-upload"></i> Carregar JSON (Local)
+                        <input type="file" id="loadConfigFile" accept=".json" onchange="loadConfiguration(event)" style="display:none;">
+                    </label>
+                </div>
+            </div>
+        </div>
+
+        <!-- 2. Alunos -->
+        <div id="tabAlunos" class="tab-panel">
+            <div class="card">
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 20px;">
+                    <h2>Cadastro de Alunos</h2>
+                    <div>
+                        <input type="file" id="excel_file" accept=".xlsx, .xls, .csv" onchange="importFromExcel(event)" style="display:none;">
+                        <label for="excel_file" class="button btn-secondary" style="background:#1e8449;"><i class="fas fa-file-excel"></i> Importar Excel</label>
+                        <button class="btn-danger" onclick="clearAllStudents()"><i class="fas fa-trash"></i> Limpar Lista</button>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group"><label>Matrícula</label><input type="number" id="studentMatricula"></div>
+                    <div class="form-group" style="flex:2;"><label>Nome Completo</label><input type="text" id="studentName"></div>
+                    <div class="form-group"><label>Turma Original</label><input type="text" id="originalClass"></div>
+                    <div class="form-group" style="max-width: 100px;"><label>Gênero</label><select id="studentGender"><option value="M">M</option><option value="F">F</option></select></div>
+                    <div class="form-group" style="max-width: 120px;"><label>Nível (1-5)</label><input type="number" id="studentScore" min="1" max="5" value="3"></div>
+                    <div><label>&nbsp;</label><button class="btn-primary" onclick="addStudent()" style="padding: 10px 15px;"><i class="fas fa-plus"></i> Add</button></div>
+                    <div><label>&nbsp;</label><button class="btn-edit" id="editStudentBtn" style="display:none; padding: 10px 15px;" onclick="updateStudent()"><i class="fas fa-save"></i> Atualizar</button></div>
+                </div>
+                <input type="hidden" id="editStudentId" value="">
+            </div>
+            <div class="card">
+                <h3><span id="studentCount">0</span> Alunos Cadastrados</h3>
+                <div id="studentsList" class="list-container"></div>
+            </div>
+        </div>
+
+        <!-- 3. Relações -->
+        <div id="tabRelacoes" class="tab-panel">
+            <div class="card">
+                <h2>Relações (Amizades e Restrições)</h2>
+                 <div class="form-row">
+                    <div class="form-group">
+                        <label>Aluno Principal:</label>
+                        <input type="number" id="mainStudentInput" placeholder="Digite a matrícula" oninput="findName('mainStudentInput', 'mainName')">
+                        <small id="mainName" style="font-weight:bold; color:var(--primary-active); height: 1.2em; display: inline-block;"></small>
+                    </div>
+                    <div class="form-group">
+                        <label>Regra:</label>
+                        <select id="relationType">
+                            <option value="must">DEVE ficar com (Amigo)</option>
+                            <option value="prefer">PREFERE ficar com</option>
+                            <option value="cannot">NÃO PODE ficar com (Inimigo)</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Aluno Alvo:</label>
+                        <input type="number" id="targetStudentInput" placeholder="Digite a matrícula" oninput="findName('targetStudentInput', 'targetName')">
+                        <small id="targetName" style="font-weight:bold; color:var(--primary-active); height: 1.2em; display: inline-block;"></small>
+                    </div>
+                    <div><button class="btn-primary" onclick="addRelation()">Criar Regra</button></div>
+                </div>
+            </div>
+            <div class="card">
+                <h3>Regras Definidas:</h3>
+                <div id="relationsList" class="list-container"></div>
+            </div>
+        </div>
+
+        <!-- 4. Resultados -->
+        <div id="tabResultados" class="tab-panel">
+            <div class="card" style="text-align:center;">
+                <button class="btn-primary" style="font-size: 1.2rem; padding: 15px 30px;" onclick="generateClasses()">
+                    <i class="fas fa-wand-magic-sparkles"></i> Gerar Novas Turmas
+                </button>
+            </div>
+            
+            <div id="satisfactionReport" class="satisfaction-container" style="display:none;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                    <h3 style="margin:0;">Análise de Sucesso</h3>
+                    <div id="satisfactionFill" style="font-weight: 700; font-size: 1.5rem;">0%</div>
+                </div>
+                <div class="progress-bg"><div id="satisfactionProgressBar" class="progress-fill"></div></div>
+                <div class="sat-details">
+                    <span id="sat-mandatory" class="sat-item"><i class="fas fa-check-circle"></i> Obrigações: -</span>
+                    <span id="sat-preferences" class="sat-item"><i class="fas fa-heart"></i> Preferências: -</span>
+                    <span id="sat-balance" class="sat-item"><i class="fas fa-balance-scale"></i> Balanceamento: -</span>
+                </div>
+            </div>
+
+            <div style="text-align:right; margin-bottom: 20px;">
+                <button class="btn-outline" onclick="exportResults()"><i class="fas fa-copy"></i> Exportar Texto</button>
+                <button class="btn-outline" onclick="exportExcelResults()"><i class="fas fa-file-excel"></i> Exportar Excel</button>
+            </div>
+            
+            <div id="newClassesOutput"></div>
+        </div>
+    </div>
+
+    <!-- OVERLAY DO QUIOSQUE -->
+    <div id="kioskOverlay" class="kiosk-overlay">
+        <button class="kiosk-close" onclick="fecharQuiosque()"><i class="fas fa-times"></i></button>
+        <div class="kiosk-card">
+            <h2><i class="fa-solid fa-people-arrows"></i> RemanejIA</h2>
+            <p class="subtitle">Selecione seu nome e marque suas relações.</p>
+            
+            <select id="kioskStudentSelect" class="kiosk-select" onchange="onKioskStudentChange()">
+                <option value="">-- Carregando alunos... --</option>
+            </select>
+
+            <div id="kioskFormArea" style="display:none;">
+                <div id="kioskColumnsContainer" class="kiosk-columns"></div>
+                <button class="kiosk-btn" onclick="salvarKioskRelacoes()"><i class="fas fa-save"></i> Salvar Relações</button>
+            </div>
+
+            <div id="kioskFeedback" class="kiosk-feedback"></div>
+        </div>
+    </div>
+    
+    <div id="toast"></div>
+    <dialog id="exportDialog">
+        <h3>Resultado em Texto</h3>
+        <textarea id="exportTextArea" style="width:100%; height:300px; border:1px solid var(--border-color); border-radius:var(--radius-md); padding:10px;" readonly></textarea>
+        <div style="margin-top:10px; text-align:right;">
+            <button onclick="document.getElementById('exportDialog').close()" class="btn-secondary">Fechar</button>
+        </div>
+    </dialog>
+
+    <footer style="text-align: center; padding: 20px; color: var(--text-muted); font-size: 0.9em;">
+        RemanejIA &copy; <span style="color: var(--sys-primary); font-weight: 600;">Systematrix</span> | 2026
+    </footer>
+
+    <script>
+        // ==========================================
+        // 1. CONFIGURAÇÃO FIREBASE E GERENCIAMENTO
+        // ==========================================
+        const firebaseConfig = {
+            apiKey: "AIzaSyB3p0DvbtoDNI0WUPrly4PdLwmsbn_jNUU",
+            authDomain: "systematrix-apps.firebaseapp.com",
+            databaseURL: "https://systematrix-apps-default-rtdb.firebaseio.com",
+            projectId: "systematrix-apps",
+            storageBucket: "systematrix-apps.firebasestorage.app",
+            messagingSenderId: "932627354123",
+            appId: "1:932627354123:web:f310c9babd17db8ac26d0e",
+            measurementId: "G-LF6FC7BDB6"
+        };
+        const app = firebase.initializeApp(firebaseConfig, "app");
+        const auth = app.auth();
+        const database = app.database();
+        let currentUserProfile = null;
+        const localStorageKey = "systematrixSSOAccounts_RemanejIA";
+        let selectedAccountEmail = null;
+        let students = []; 
+        let generatedClasses = [];
+        let editingStudentId = null;
+        let selectedKioskStudentId = null;
+        let kioskSettings = {
+            showFriends: true,
+            showEnemies: true
+        };
+
+        // ==========================================
+        // 2. DETECÇÃO DO MODO QUIOSQUE VIA URL
+        // ==========================================
+        function isKioskMode() {
+            const params = new URLSearchParams(window.location.search);
+            return params.get('kiosk'); // retorna o UID se existir
+        }
+
+        async function startKioskMode(uid) {
+            document.getElementById('login-view').style.display = 'none';
+            document.getElementById('main-app-container').style.display = 'none';
+            document.getElementById('kioskOverlay').classList.add('active');
+            try {
+                const snap = await database.ref(`dados_remanejia/${uid}`).once('value');
+                const projeto = snap.val() || {};
+                students = projeto.students || [];
+                if (projeto.kioskSettings) {
+                    kioskSettings = projeto.kioskSettings;
+                } else {
+                    kioskSettings = { showFriends: true, showEnemies: true };
+                }
+                carregarDropdownQuiosque();
+                if (students.length === 0) {
+                    mostrarFeedbackKiosk('Nenhum aluno cadastrado.', true);
+                }
+                document.getElementById('kioskShowFriends').checked = kioskSettings.showFriends;
+                document.getElementById('kioskShowEnemies').checked = kioskSettings.showEnemies;
+            } catch (error) {
+                console.error(error);
+                mostrarFeedbackKiosk('Erro ao carregar a lista de alunos.', true);
+            }
+        }
+
+        // ==========================================
+        // 3. LÓGICA SSO (UI e Auth) – SOMENTE MODO NORMAL
+        // ==========================================
+        async function logActionToRTDB(system, action, userId) {
+    if (!currentUserProfile || !currentUserProfile.schoolId) return;
+    try {
+        const snap = await database
+          .ref(`admins_por_instituicao/${currentUserProfile.schoolId}`)
+          .once('value');
+        const adminsObj = snap.val();
+
+        // Se não houver admins cadastrados, usa o próprio schoolId como fallback
+        let autorUid = currentUserProfile.schoolId;
+        if (adminsObj && typeof adminsObj === 'object') {
+            const adminUIDs = Object.keys(adminsObj);
+            if (adminUIDs.length > 0) {
+                autorUid = adminUIDs[0];
+            }
+        }
+
+        database.ref(`logs_atividades/${currentUserProfile.schoolId}/`).push({
+            acao: `Ação no ${system}`,
+            detalhe: action,
+            autorUid: autorUid,
+            professorUid: auth.currentUser.uid,
+            timestamp: { ".sv": "timestamp" }
+        });
+    } catch (error) {
+        console.warn("Não foi possível registrar log:", error);
+        // O log não é crítico para a operação principal; apenas ignora o erro.
+    }
+}
+        function getRememberedAccounts() { try { const a = localStorage.getItem(localStorageKey); return a ? JSON.parse(a) : []; } catch (e) { return []; } }
+        function saveAccount(email) { let a = getRememberedAccounts().filter(acc => acc !== email); a.unshift(email); localStorage.setItem(localStorageKey, JSON.stringify(a)); }
+        function removeAccount(email) { if(confirm(`Remover ${email}?`)) { localStorage.setItem(localStorageKey, JSON.stringify(getRememberedAccounts().filter(a => a !== email))); loadAccountChooser(); } }
+        function loadAccountChooser() {
+            const accounts = getRememberedAccounts(), listUl = document.getElementById('account-list'), backBtn = document.getElementById('back-to-chooser-btn');
+            listUl.innerHTML = ''; document.getElementById('password-prompt').style.display = 'none';
+            if (accounts.length > 0) {
+                accounts.forEach(email => {
+                    const li = document.createElement('li'); li.className = 'account-item';
+                    li.innerHTML = `<span>${email}</span><button class="remove-account-btn" onclick="event.stopPropagation(); removeAccount('${email}')">&times;</button>`;
+                    li.onclick = () => handleAccountClick(email);
+                    listUl.appendChild(li);
+                });
+                document.getElementById('account-chooser').style.display = 'block'; document.getElementById('login-form').style.display = 'none'; if(backBtn) backBtn.style.display = 'block';
+            } else {
+                document.getElementById('account-chooser').style.display = 'none'; document.getElementById('login-form').style.display = 'block'; if(backBtn) backBtn.style.display = 'none';
+            }
+        }
+        function showAccountChooser() { document.getElementById('account-chooser').style.display = 'block'; document.getElementById('password-prompt').style.display = 'none'; document.getElementById('login-form').style.display = 'none'; }
+        function showLoginForm() { document.getElementById('account-chooser').style.display = 'none'; document.getElementById('password-prompt').style.display = 'none'; document.getElementById('login-form').style.display = 'block'; }
+        function handleAccountClick(email) {
+            selectedAccountEmail = email; document.getElementById('account-chooser').style.display = 'none'; document.getElementById('login-form').style.display = 'none';
+            document.getElementById('password-prompt').style.display = 'block'; document.getElementById('prompt-email').textContent = email;
+            document.getElementById('prompt-password').value = ''; document.getElementById('prompt-password').focus();
+        }
+        function performLogin(email, password) { auth.signInWithEmailAndPassword(email, password).then(cred => saveAccount(email)).catch(err => showToast("Erro: " + err.message)); }
+        function loginFromForm() { const e = document.getElementById("sso-email").value, p = document.getElementById("password").value; if (!e || !p) return showToast("Preencha email e senha."); performLogin(e, p); }
+        function loginWithPassword() { const p = document.getElementById("prompt-password").value; if (!p) return showToast("Digite a senha."); performLogin(selectedAccountEmail, p); }
+        function logout() { auth.signOut(); }
+
+        // ==========================================
+        // 4. AUTENTICAÇÃO + CO-BRANDING INSTITUCIONAL
+        // ==========================================
+        auth.onAuthStateChanged(user => {
+            if (isKioskMode()) return;
+
+            const loginView = document.getElementById('login-view');
+            const appContainer = document.getElementById('main-app-container');
+            const userInfo = document.getElementById('user-info');
+
+            if (user) {
+                database.ref('usuarios_institucionais/' + user.uid).once('value')
+                    .then(snapshot => {
+                        if (snapshot.exists() && snapshot.val().sistemasAcesso && snapshot.val().sistemasAcesso.includes('remanejia')) {
+                            if (snapshot.val().status !== "ativo") { alert('Sem acesso ao RemanejIA.'); logout(); return; }
+                            const instData = snapshot.val();
+                            const instituicaoId = instData.instituicaoId;
+                            if (instituicaoId) {
+                                currentUserProfile = {
+                                    email: user.email,
+                                    schoolId: instituicaoId,
+                                    institutional: true
+                                };
+                                database.ref('instituicoes/' + instituicaoId + '/personalizacao').once('value')
+                                    .then(persSnapshot => {
+                                        if (persSnapshot.exists()) {
+                                            const pers = persSnapshot.val();
+                                            if (pers.corPrimaria) {
+                                                document.documentElement.style.setProperty('--cor-primaria-inst', pers.corPrimaria);
+                                            }
+                                            if (pers.logoUrl) {
+                                                const logoImg = document.getElementById('logo-instituicao');
+                                                if (logoImg) {
+                                                    logoImg.src = pers.logoUrl;
+                                                    logoImg.style.display = 'inline';
+                                                }
+                                            }
+                                        }
+                                        loginView.style.display = 'none';
+                                        appContainer.style.display = 'block';
+                                        userInfo.innerHTML = `<span class="badge" style="background:var(--primary-light); color:var(--primary-dark); font-weight:500;">${user.email}</span> <button class="btn-outline" style="padding:4px 10px; font-size:0.8rem; margin-left:10px;" onclick="logout()">Sair</button>`;
+                                        atualizarLinkQuiosque(user.uid);
+                                    })
+                                    .catch(err => {
+                                        console.error("Erro ao carregar personalização:", err);
+                                        loginView.style.display = 'none';
+                                        appContainer.style.display = 'block';
+                                        userInfo.innerHTML = `<span class="badge" style="background:var(--primary-light); color:var(--primary-dark); font-weight:500;">${user.email}</span> <button class="btn-outline" style="padding:4px 10px; font-size:0.8rem; margin-left:10px;" onclick="logout()">Sair</button>`;
+                                        atualizarLinkQuiosque(user.uid);
+                                    });
+                            } else {
+                                handleLegacyUser(user);
+                            }
+                        } else if (!snapshot.exists() || !snapshot.val().sistemasAcesso || !snapshot.val().sistemasAcesso.includes('remanejia')) {
+                            alert('Sem acesso ao RemanejIA.'); logout(); return;
+                        } else {
+                            handleLegacyUser(user);
+                        }
+                    })
+                    .catch(err => {
+                        console.error("Erro ao verificar usuário institucional:", err);
+                        handleLegacyUser(user);
+                    });
+            } else {
+                currentUserProfile = null;
+                appContainer.style.display = 'none';
+                loginView.style.display = 'flex';
+                loadAccountChooser();
+                document.documentElement.style.removeProperty('--cor-primaria-inst');
+                const logoImg = document.getElementById('logo-instituicao');
+                if (logoImg) {
+                    logoImg.src = '';
+                    logoImg.style.display = 'none';
+                }
+                document.getElementById('kioskLinkCard').style.display = 'none';
+            }
+        });
+
+        function handleLegacyUser(user) {
+            const loginView = document.getElementById('login-view');
+            const appContainer = document.getElementById('main-app-container');
+            const userInfo = document.getElementById('user-info');
+            database.ref('users/' + user.uid).once('value').then(s => {
+                if (s.exists()) {
+                    const p = s.val();
+                    if (p.acquiredSystems && p.acquiredSystems.includes('RemanejIA')) {
+                        currentUserProfile = p;
+                        loginView.style.display = 'none';
+                        appContainer.style.display = 'block';
+                        userInfo.innerHTML = `<span class="badge" style="background:var(--primary-light); color:var(--primary-dark); font-weight:500;">${user.email}</span> <button class="btn-outline" style="padding:4px 10px; font-size:0.8rem; margin-left:10px;" onclick="logout()">Sair</button>`;
+                        atualizarLinkQuiosque(user.uid);
+                    } else {
+                        alert('Sem acesso ao RemanejIA.');
+                        logout();
+                    }
+                } else {
+                    alert('Perfil não configurado.');
+                    logout();
+                }
+            }).catch(err => {
+                console.error("Erro ao buscar perfil legacy:", err);
+                alert('Erro ao carregar perfil.');
+                logout();
+            });
+        }
+
+        function atualizarLinkQuiosque(uid) {
+            const card = document.getElementById('kioskLinkCard');
+            const input = document.getElementById('kioskLinkInput');
+            const baseUrl = window.location.origin + window.location.pathname;
+            input.value = `${baseUrl}?kiosk=${uid}`;
+            card.style.display = 'block';
+        }
+
+        function copiarLinkQuiosque() {
+            const input = document.getElementById('kioskLinkInput');
+            navigator.clipboard.writeText(input.value).then(() => {
+                const msg = document.getElementById('kioskLinkCopied');
+                msg.style.display = 'block';
+                setTimeout(() => { msg.style.display = 'none'; }, 2000);
+            }).catch(() => {
+                showToast('Não foi possível copiar. Copie manualmente.');
+            });
+        }
+
+        // ==========================================
+        // 5. LÓGICA DO SISTEMA (usada no modo normal)
+        // ==========================================
+        function showToast(msg) {
+            const x = document.getElementById("toast");
+            x.textContent = msg; x.className = "show";
+            setTimeout(() => { x.className = x.className.replace("show", ""); }, 3000);
+        }
+
+        function openTab(tabName) {
+            document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+            document.querySelectorAll('.tab-button').forEach(b => b.classList.remove('active'));
+            document.getElementById(tabName).classList.add('active');
+            document.querySelector(`button[onclick="openTab('${tabName}')"]`).classList.add('active');
+        }
+
+        function generateId() { return '_' + Math.random().toString(36).substr(2, 9); }
+        
+        // --- Alunos (CRUD) ---
+        function addStudent(manualData = null) {
+            let matricula, name, originalClass, gender, score;
+            if (manualData) { ({ matricula, name, originalClass, gender, score } = manualData); } 
+            else {
+                matricula = document.getElementById('studentMatricula').value.trim();
+                name = document.getElementById('studentName').value.trim();
+                originalClass = document.getElementById('originalClass').value.trim();
+                gender = document.getElementById('studentGender').value;
+                score = parseInt(document.getElementById('studentScore').value);
+            }
+            if (!matricula || !name) return !manualData && showToast("Preencha matrícula e nome!");
+            if (students.some(s => s.matricula === matricula)) return !manualData && showToast("Matrícula duplicada!");
+            students.push({ id: generateId(), matricula, name, originalClass: originalClass || "N/A", gender: gender || "M", score: score || 3, constraints: [] });
+            if (!manualData) {
+                document.getElementById('studentMatricula').value = '';
+                document.getElementById('studentName').value = '';
+                document.getElementById('studentMatricula').focus();
+                showToast("Adicionado!");
+                renderStudents();
+            }
+        }
+
+        function startEdit(studentId) {
+            const student = students.find(s => s.id === studentId);
+            if (!student) return;
+            editingStudentId = studentId;
+            document.getElementById('studentMatricula').value = student.matricula;
+            document.getElementById('studentName').value = student.name;
+            document.getElementById('originalClass').value = student.originalClass;
+            document.getElementById('studentGender').value = student.gender;
+            document.getElementById('studentScore').value = student.score;
+            document.querySelector('button[onclick="addStudent()"]').style.display = 'none';
+            document.getElementById('editStudentBtn').style.display = 'inline-flex';
+            showToast("Editando aluno. Altere os dados e clique em Atualizar.");
+        }
+
+        function updateStudent() {
+            if (!editingStudentId) return;
+            const student = students.find(s => s.id === editingStudentId);
+            if (!student) return;
+            const matricula = document.getElementById('studentMatricula').value.trim();
+            const name = document.getElementById('studentName').value.trim();
+            const originalClass = document.getElementById('originalClass').value.trim();
+            const gender = document.getElementById('studentGender').value;
+            const score = parseInt(document.getElementById('studentScore').value);
+            if (!matricula || !name) return showToast("Preencha matrícula e nome!");
+            if (students.some(s => s.matricula === matricula && s.id !== editingStudentId)) {
+                return showToast("Matrícula já existe em outro aluno!");
+            }
+            student.matricula = matricula;
+            student.name = name;
+            student.originalClass = originalClass || "N/A";
+            student.gender = gender;
+            student.score = score || 3;
+            cancelEdit();
+            renderStudents();
+            renderRelations();
+            showToast("Aluno atualizado!");
+        }
+
+        function cancelEdit() {
+            editingStudentId = null;
+            document.getElementById('studentMatricula').value = '';
+            document.getElementById('studentName').value = '';
+            document.getElementById('originalClass').value = '';
+            document.getElementById('studentGender').value = 'M';
+            document.getElementById('studentScore').value = 3;
+            document.querySelector('button[onclick="addStudent()"]').style.display = 'inline-flex';
+            document.getElementById('editStudentBtn').style.display = 'none';
+        }
+
+        function removeStudent(id) {
+            if(!confirm("Remover aluno?")) return;
+            students.forEach(s => s.constraints = s.constraints.filter(c => c.targetId !== id));
+            students = students.filter(s => s.id !== id);
+            if (editingStudentId === id) cancelEdit();
+            renderStudents();
+            renderRelations();
+        }
+
+        function clearAllStudents() {
+            if(confirm("Apagar todos os alunos?")) {
+                students = [];
+                cancelEdit();
+                renderStudents();
+                renderRelations();
+            }
+        }
+
+        function renderStudents() {
+            document.getElementById('studentCount').textContent = students.length;
+            const list = document.getElementById('studentsList');
+            const sorted = [...students].sort((a,b) => a.name.localeCompare(b.name));
+            list.innerHTML = sorted.map(s => `
+                <div class="list-item">
+                    <div><strong>${s.name}</strong><br><small style="color:var(--text-muted)">Matrícula: ${s.matricula} | Turma: ${s.originalClass}</small></div>
+                    <div class="list-item-actions">
+                        <button class="btn-edit" style="padding:4px 8px;" onclick="startEdit('${s.id}')"><i class="fas fa-edit"></i></button>
+                        <button class="btn-danger" style="padding:4px 8px;" onclick="removeStudent('${s.id}')"><i class="fas fa-trash"></i></button>
+                    </div>
+                </div>`).join('');
+            if (document.getElementById('kioskOverlay').classList.contains('active')) {
+                carregarDropdownQuiosque();
+            }
+        }
+
+        // --- Importação Excel ---
+        function importFromExcel(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = (ev) => {
+                try {
+                    const data = new Uint8Array(ev.target.result);
+                    const workbook = XLSX.read(data, { type: 'array' });
+                    const sheetName = workbook.SheetNames[0];
+                    const sheet = workbook.Sheets[sheetName];
+                    const rows = XLSX.utils.sheet_to_json(sheet, { header: 1, defval: '' });
+                    if (rows.length < 2) { showToast("Arquivo vazio ou sem dados."); return; }
+                    const header = rows[0].map(cell => String(cell).trim().toLowerCase());
+                    const hasHeader = header.some(h => ['matricula', 'nomealuno', 'serieturma', 'nome'].includes(h));
+                    let colMap = {};
+                    if (hasHeader) {
+                        const possible = {
+                            matricula: ['matricula', 'matrícula', 'id', 'registro'],
+                            nome: ['nomealuno', 'nome', 'aluno', 'name'],
+                            turma: ['serieturma', 'turma', 'class', 'serie']
+                        };
+                        header.forEach((h, idx) => {
+                            for (let [key, keywords] of Object.entries(possible)) {
+                                if (keywords.includes(h)) { colMap[key] = idx; break; }
+                            }
+                        });
+                        if (!colMap.matricula && !colMap.nome) colMap = { matricula: 0, nome: 1, turma: 2 };
+                        if (!colMap.turma) colMap.turma = -1;
+                    } else { colMap = { matricula: 0, nome: 1, turma: 2 }; }
+                    let count = 0;
+                    const startRow = hasHeader ? 1 : 0;
+                    for (let i = startRow; i < rows.length; i++) {
+                        const row = rows[i];
+                        if (!row || row.every(cell => cell === '')) continue;
+                        const matricula = String(row[colMap.matricula] || '').trim();
+                        const nome = String(row[colMap.nome] || '').trim();
+                        const turma = colMap.turma >= 0 ? String(row[colMap.turma] || '').trim() : '';
+                        if (!matricula || !nome) continue;
+                        let genero = 'M', nivel = 3;
+                        const genderIdx = header.findIndex(h => ['genero', 'sexo', 'gender'].includes(h));
+                        if (genderIdx >= 0 && row[genderIdx]) { const val = String(row[genderIdx]).trim().toUpperCase(); if (val === 'F' || val === 'M') genero = val; }
+                        const scoreIdx = header.findIndex(h => ['nivel', 'score', 'nível', 'nota'].includes(h));
+                        if (scoreIdx >= 0 && row[scoreIdx]) { const val = parseInt(row[scoreIdx]); if (!isNaN(val) && val >= 1 && val <= 5) nivel = val; }
+                        addStudent({ matricula, name: nome, originalClass: turma || 'N/A', gender: genero, score: nivel });
+                        count++;
+                    }
+                    renderStudents();
+                    showToast(`${count} alunos importados com sucesso!`);
+                } catch (err) { console.error(err); showToast("Erro ao processar o arquivo: " + err.message); }
+            };
+            reader.readAsArrayBuffer(file);
+            e.target.value = null;
+        }
+
+        // --- Relações (admin) ---
+        function findName(inputId, outputId) {
+            const mat = document.getElementById(inputId).value;
+            const s = students.find(s => s.matricula === mat);
+            document.getElementById(outputId).textContent = s ? s.name : "";
+        }
+
+        function addRelation() {
+            const s1 = students.find(s => s.matricula === document.getElementById('mainStudentInput').value);
+            const s2 = students.find(s => s.matricula === document.getElementById('targetStudentInput').value);
+            const type = document.getElementById('relationType').value;
+            if (!s1 || !s2 || s1.id === s2.id) return showToast("Dados inválidos.");
+            if (s1.constraints.some(c => c.targetId === s2.id)) return showToast("Já existe relação.");
+            s1.constraints.push({ type, targetId: s2.id });
+            if (type !== 'prefer' && !s2.constraints.some(c => c.targetId === s1.id)) {
+                s2.constraints.push({ type, targetId: s1.id });
+            }
+            document.getElementById('targetStudentInput').value = '';
+            document.getElementById('targetName').textContent = '';
+            renderRelations();
+            showToast("Regra criada!");
+        }
+
+        function removeRelation(sid, tid) {
+            const s = students.find(x => x.id === sid);
+            if(s) {
+                s.constraints = s.constraints.filter(c => c.targetId !== tid);
+                const o = students.find(x => x.id === tid);
+                if(o) o.constraints = o.constraints.filter(c => c.targetId !== sid);
+            }
+            renderRelations();
+        }
+
+        function renderRelations() {
+            const list = document.getElementById('relationsList');
+            let html = '';
+            const processed = new Set();
+            students.forEach(s => {
+                if (!s.constraints) s.constraints = [];
+                s.constraints.forEach(c => {
+                    const pairKey = [s.id, c.targetId].sort().join('-');
+                    if (processed.has(pairKey)) return;
+                    const t = students.find(x => x.id === c.targetId);
+                    if (!t) return;
+                    const icons = {'must': 'fa-link', 'prefer': 'fa-thumbs-up', 'cannot': 'fa-ban'};
+                    const colors = {'must': 'var(--success)', 'prefer': 'var(--secondary)', 'cannot': 'var(--danger)'};
+                    html += `<div class="list-item"><span><i class="fas ${icons[c.type]}" style="color:${colors[c.type]};"></i> <strong>${s.name}</strong> &harr; <strong>${t.name}</strong></span> <button class="btn-danger" style="padding:4px 8px;" onclick="removeRelation('${s.id}','${t.id}')"><i class="fas fa-times"></i></button></div>`;
+                    processed.add(pairKey);
+                });
+            });
+            list.innerHTML = html || '<p style="color:var(--text-muted); text-align:center;">Nenhuma regra definida.</p>';
+        }
+
+        // ========== QUIOSQUE (modo kiosk) ==========
+        function fecharQuiosque() {
+            document.getElementById('kioskOverlay').classList.remove('active');
+        }
+
+        function carregarDropdownQuiosque() {
+            const select = document.getElementById('kioskStudentSelect');
+            const currentVal = select.value;
+            select.innerHTML = '<option value="">-- Selecione um aluno --</option>';
+            students.forEach(s => {
+                const opt = document.createElement('option');
+                opt.value = s.id;
+                opt.textContent = s.name + (s.matricula ? ' (' + s.matricula + ')' : '');
+                if (s.id === currentVal) opt.selected = true;
+                select.appendChild(opt);
+            });
+            if (currentVal && students.some(s => s.id === currentVal)) {
+                onKioskStudentChange();
+            } else {
+                document.getElementById('kioskFormArea').style.display = 'none';
+            }
+        }
+
+        function onKioskStudentChange() {
+            const id = document.getElementById('kioskStudentSelect').value;
+            selectedKioskStudentId = id || null;
+            const formArea = document.getElementById('kioskFormArea');
+            if (!id) {
+                formArea.style.display = 'none';
+                return;
+            }
+            formArea.style.display = 'block';
+            construirListasQuiosque();
+        }
+
+        function construirListasQuiosque() {
+            if (!selectedKioskStudentId) return;
+            const student = students.find(s => s.id === selectedKioskStudentId);
+            if (!student) return;
+
+            const showFriends = kioskSettings.showFriends;
+            const showEnemies = kioskSettings.showEnemies;
+
+            const amizades = new Set();
+            const inimizades = new Set();
+            if (student.constraints) {
+                student.constraints.forEach(c => {
+                    if (c.type === 'prefer') amizades.add(c.targetId);
+                    else if (c.type === 'cannot') inimizades.add(c.targetId);
+                });
+            }
+            const outros = students.filter(s => s.id !== selectedKioskStudentId);
+
+            let columnsHtml = '';
+            if (showFriends) {
+                const amigosHtml = outros.map(s =>
+                    `<label><input type="checkbox" value="${s.id}" ${amizades.has(s.id) ? 'checked' : ''}> ${s.name}</label>`
+                ).join('') || '<p style="color: var(--text-muted);">Nenhum outro aluno.</p>';
+                columnsHtml += `<div><strong>Amigos (prefere ficar junto)</strong><div class="kiosk-checklist" id="kioskAmigosList">${amigosHtml}</div></div>`;
+            }
+            if (showEnemies) {
+                const inimigosHtml = outros.map(s =>
+                    `<label><input type="checkbox" value="${s.id}" ${inimizades.has(s.id) ? 'checked' : ''}> ${s.name}</label>`
+                ).join('') || '<p style="color: var(--text-muted);">Nenhum outro aluno.</p>';
+                columnsHtml += `<div><strong>Inimigos (não pode ficar junto)</strong><div class="kiosk-checklist" id="kioskInimigosList">${inimigosHtml}</div></div>`;
+            }
+
+            const container = document.getElementById('kioskColumnsContainer');
+            if (!showFriends && !showEnemies) {
+                container.className = 'kiosk-columns';
+                container.innerHTML = '<p class="kiosk-empty-message">Nenhum tipo de relação configurado para este projeto.</p>';
+            } else {
+                container.className = `kiosk-columns ${(showFriends && showEnemies) ? 'col2' : 'col1'}`;
+                container.innerHTML = columnsHtml;
+            }
+        }
+
+        async function salvarKioskRelacoes() {
+            if (!selectedKioskStudentId) return;
+            const student = students.find(s => s.id === selectedKioskStudentId);
+            if (!student) return;
+
+            const showFriends = kioskSettings.showFriends;
+            const showEnemies = kioskSettings.showEnemies;
+
+            let novosAmigos = [];
+            let novosInimigos = [];
+
+            if (showFriends) {
+                const amigosChecks = document.querySelectorAll('#kioskAmigosList input[type="checkbox"]:checked');
+                novosAmigos = Array.from(amigosChecks).map(cb => cb.value);
+            }
+            if (showEnemies) {
+                const inimigosChecks = document.querySelectorAll('#kioskInimigosList input[type="checkbox"]:checked');
+                novosInimigos = Array.from(inimigosChecks).map(cb => cb.value);
+            }
+
+            if (student.constraints) {
+                const tiposParaRemover = [];
+                if (showFriends) tiposParaRemover.push('prefer');
+                if (showEnemies) tiposParaRemover.push('cannot');
+                const removidos = student.constraints.filter(c => tiposParaRemover.includes(c.type));
+                for (let c of removidos) {
+                    const outro = students.find(s => s.id === c.targetId);
+                    if (outro && outro.constraints) {
+                        outro.constraints = outro.constraints.filter(con =>
+                            !(con.targetId === student.id && con.type === c.type)
+                        );
+                    }
+                }
+                student.constraints = student.constraints.filter(c => !tiposParaRemover.includes(c.type));
+            }
+
+            if (showFriends) {
+                novosAmigos.forEach(tid => {
+                    if (!student.constraints) student.constraints = [];
+                    student.constraints.push({ type: 'prefer', targetId: tid });
+                });
+            }
+            if (showEnemies) {
+                novosInimigos.forEach(tid => {
+                    if (!student.constraints) student.constraints = [];
+                    student.constraints.push({ type: 'cannot', targetId: tid });
+                    const outro = students.find(s => s.id === tid);
+                    if (outro) {
+                        if (!outro.constraints) outro.constraints = [];
+                        if (!outro.constraints.some(c => c.targetId === student.id && c.type === 'cannot')) {
+                            outro.constraints.push({ type: 'cannot', targetId: student.id });
+                        }
+                    }
+                });
+            }
+
+            const kioskUid = isKioskMode();
+            if (kioskUid) {
+                try {
+                    await database.ref(`dados_remanejia/${kioskUid}`).update({ students: students });
+                    mostrarFeedbackKiosk('Relações salvas com sucesso!', false);
+                } catch (error) {
+                    mostrarFeedbackKiosk('Erro ao salvar: ' + error.message, true);
+                }
+            } else {
+                mostrarFeedbackKiosk('UID do projeto não encontrado.', true);
+            }
+        }
+
+        function mostrarFeedbackKiosk(msg, erro) {
+            const fb = document.getElementById('kioskFeedback');
+            fb.textContent = msg;
+            fb.className = 'kiosk-feedback ' + (erro ? 'error' : 'success');
+            setTimeout(() => { fb.className = 'kiosk-feedback'; }, 4000);
+        }
+
+        // --- ALGORITMO (cálculo local e geração no servidor) ---
+        function getPriorities() {
+            const pM = document.getElementById('prioMandatory').checked;
+            const pP = document.getElementById('prioPreferences').checked;
+            const pB = document.getElementById('prioBalance').checked;
+            return { pMand: pM, pPref: pP, pBal: pB, wMand: pM ? 3 : 1, wPref: pP ? 3 : 1, wBal: pB ? 3 : 1 };
+        }
+
+        function calculateMetrics(classes) {
+            if (!classes || classes.length === 0) {
+                return { totalScore: 0, mandatoryPct: 0, preferPct: 0, balancePct: 0, stats: {} };
+            }
+            let totalMandatory = 0, satisfiedMandatory = 0;
+            let totalPrefer = 0, satisfiedPrefer = 0;
+            const classMap = new Map();
+            classes.forEach((cls, idx) => cls.forEach(s => classMap.set(s.id, idx)));
+
+            classes.forEach((cls, idx) => {
+                cls.forEach(s => {
+                    if (s.constraints) {
+                        s.constraints.forEach(c => {
+                            const targetClass = classMap.get(c.targetId);
+                            if (targetClass !== undefined) {
+                                if (c.type === 'must') {
+                                    totalMandatory++;
+                                    if (targetClass === idx) satisfiedMandatory++;
+                                } else if (c.type === 'prefer') {
+                                    totalPrefer++;
+                                    if (targetClass === idx) satisfiedPrefer++;
+                                } else if (c.type === 'cannot') {
+                                    totalMandatory++;
+                                    if (targetClass !== idx) satisfiedMandatory++;
+                                }
+                            }
+                        });
+                    }
+                });
+            });
+
+            const sizes = classes.map(c => c.length);
+            const avgSize = sizes.reduce((a,b) => a+b, 0) / sizes.length;
+            const sizeDev = Math.sqrt(sizes.reduce((a,b) => a + Math.pow(b - avgSize, 2), 0) / sizes.length);
+            const balanceScore = Math.max(0, 1 - (sizeDev / (avgSize * 0.5)));
+
+            const mandatoryPct = totalMandatory > 0 ? (satisfiedMandatory / totalMandatory) * 100 : 100;
+            const preferPct = totalPrefer > 0 ? (satisfiedPrefer / totalPrefer) * 100 : 100;
+            const balancePct = balanceScore * 100;
+
+            const p = getPriorities();
+            let weightSum = 0;
+            if (p.pMand) weightSum += 0.4;
+            if (p.pPref) weightSum += 0.3;
+            if (p.pBal) weightSum += 0.3;
+            const totalScore = (p.pMand ? mandatoryPct * (0.4 / weightSum) : 0) +
+                               (p.pPref ? preferPct * (0.3 / weightSum) : 0) +
+                               (p.pBal ? balancePct * (0.3 / weightSum) : 0);
+
+            return {
+                totalScore: Math.min(100, totalScore),
+                mandatoryPct,
+                preferPct,
+                balancePct,
+                stats: { totalMandatory, satisfiedMandatory, totalPrefer, satisfiedPrefer }
+            };
+        }
+
+        async function generateClasses() {
+            if (students.length === 0) return showToast("Sem alunos!");
+            const btn = document.querySelector('button[onclick="generateClasses()"]');
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Otimizando no Servidor...';
+            btn.disabled = true;
+            try {
+                const payload = {
+                    auth: { uid: auth.currentUser.uid, email: auth.currentUser.email },
+                    students: students,
+                    numClasses: parseInt(document.getElementById('numNewClasses').value),
+                    shuffleIntensity: parseInt(document.getElementById('shuffleIntensity').value),
+                    priorities: getPriorities()
+                };
+                const response = await fetch('https://systematrix.pythonanywhere.com/remanejia/gerar', {
+                    method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload)
+                });
+                const data = await response.json();
+                if (!data.sucesso) throw new Error(data.mensagem);
+                generatedClasses = data.classes;
+                renderGeneratedClasses();
+                updateSatisfactionUI(data.metrics);
+                showToast("Configuração processada pelo servidor!");
+                logActionToRTDB("RemanejIA", "Gerou novas turmas (Backend)", auth.currentUser.uid);
+            } catch(e) { showToast("Erro: " + e.message); }
+            finally { btn.innerHTML = '<i class="fas fa-wand-magic-sparkles"></i> Gerar Novas Turmas'; btn.disabled = false; }
+        }
+
+        function updateSatisfactionUI(metrics) {
+            const container = document.getElementById('satisfactionReport');
+            container.style.display = 'block';
+
+            const p = getPriorities();
+            let weightSum = 0;
+            if (p.pMand) weightSum += 0.4;
+            if (p.pPref) weightSum += 0.3;
+            if (p.pBal) weightSum += 0.3;
+            const score = Math.round(
+                (p.pMand ? metrics.mandatoryPct * (0.4 / weightSum) : 0) +
+                (p.pPref ? metrics.preferPct * (0.3 / weightSum) : 0) +
+                (p.pBal ? metrics.balancePct * (0.3 / weightSum) : 0)
+            );
+
+            document.getElementById('satisfactionProgressBar').style.width = `${score}%`;
+            document.getElementById('satisfactionFill').textContent = `${score}%`;
+
+            const barColor = score >= 80 ? 'linear-gradient(90deg, #10b981, #2dd4bf)' :
+                             (score >= 50 ? 'linear-gradient(90deg, #f59e0b, #facc15)' :
+                                           'linear-gradient(90deg, #ef4444, #f87171)');
+            document.getElementById('satisfactionProgressBar').style.background = barColor;
+
+            const fmt = (prio, val) => prio ? `<strong>${val}</strong>` : val;
+            document.getElementById('sat-mandatory').innerHTML = `<i class="fas fa-check-circle"></i> Regras Rígidas: ${fmt(p.pMand, Math.round(metrics.mandatoryPct) + '%')}`;
+            document.getElementById('sat-preferences').innerHTML = `<i class="fas fa-heart"></i> Preferências: ${fmt(p.pPref, Math.round(metrics.preferPct) + '%')}`;
+            document.getElementById('sat-balance').innerHTML = `<i class="fas fa-balance-scale"></i> Balanceamento: ${fmt(p.pBal, Math.round(metrics.balancePct) + '%')}`;
+        }
+        
+        function renderGeneratedClasses() {
+            const container = document.getElementById('newClassesOutput');
+            container.innerHTML = '';
+            const studentClassMap = new Map();
+            generatedClasses.forEach((cls, idx) => cls.forEach(s => studentClassMap.set(s.id, idx)));
+            generatedClasses.forEach((cls, idx) => {
+                const f = cls.filter(s => s.gender === 'F').length;
+                const col = document.createElement('div');
+                col.className = 'class-column';
+                col.innerHTML = `<div class="class-header"><h3>Turma ${idx + 1}</h3><div class="class-stats"><span class="badge"><i class="fas fa-user"></i> ${cls.length}</span><span class="badge"><i class="fas fa-venus"></i> ${f}</span><span class="badge"><i class="fas fa-mars"></i> ${cls.length - f}</span></div></div>`;
+                const ul = document.createElement('ul');
+                ul.className = 'student-draggable-list';
+                ul.dataset.classIndex = idx;
+                ul.ondragover = e => { e.preventDefault(); ul.style.backgroundColor = 'var(--primary-light)'; };
+                ul.ondragleave = () => ul.style.backgroundColor = 'transparent';
+                ul.ondrop = handleDrop;
+                cls.sort((a,b) => a.name.localeCompare(b.name)).forEach(s => {
+                    let relationsHTML = '';
+                    if (s.constraints) {
+                        s.constraints.forEach(c => {
+                            const targetClassIdx = studentClassMap.get(c.targetId);
+                            let isOk = true;
+                            if (c.type === 'must' && targetClassIdx !== idx) isOk = false;
+                            if (c.type === 'cannot' && targetClassIdx === idx) isOk = false;
+                            if (c.type !== 'prefer') {
+                                relationsHTML += `<i class="fas ${isOk ? 'fa-check-circle rel-icon-ok' : 'fa-times-circle rel-icon-bad'}" title="${c.type} com ${students.find(st=>st.id===c.targetId)?.name || ''}"></i>`;
+                            }
+                        });
+                    }
+                    const li = document.createElement('li');
+                    li.className = 'student-card';
+                    li.draggable = true;
+                    li.id = s.id;
+                    li.innerHTML = `<div class="student-main"><span>${s.name}</span> <i class="fas ${s.gender==='F'?'fa-venus tag-gender-f':'fa-mars tag-gender-m'}"></i></div><div class="meta"><span><i class="fa-solid fa-chalkboard"></i> ${s.originalClass}</span> <div class="relations-status">${relationsHTML}</div></div>`;
+                    li.ondragstart = e => { e.dataTransfer.setData('text', JSON.stringify({ sid: s.id, originIdx: idx })); li.classList.add('dragging'); };
+                    li.ondragend = () => li.classList.remove('dragging');
+                    ul.appendChild(li);
+                });
+                col.appendChild(ul);
+                container.appendChild(col);
+            });
+        }
+
+        function handleDrop(e) {
+            e.preventDefault();
+            e.currentTarget.style.background = 'transparent';
+            const data = JSON.parse(e.dataTransfer.getData('text'));
+            const targetIdx = parseInt(e.currentTarget.dataset.classIndex);
+            if (targetIdx === data.originIdx) return;
+            const studentIndex = generatedClasses[data.originIdx].findIndex(s => s.id === data.sid);
+            const student = generatedClasses[data.originIdx][studentIndex];
+            generatedClasses[data.originIdx].splice(studentIndex, 1);
+            generatedClasses[targetIdx].push(student);
+            renderGeneratedClasses();
+            const metrics = calculateMetrics(generatedClasses);
+            updateSatisfactionUI(metrics);
+            showToast("Aluno movido!");
+        }
+
+        function exportResults() {
+            if (!generatedClasses.length) return showToast("Gere primeiro.");
+            if (auth.currentUser) logActionToRTDB("RemanejIA", "Exportou resultados", auth.currentUser.uid);
+            let t = "REMANEJIA - RESULTADO\n\n";
+            generatedClasses.forEach((c, i) => {
+                t += `TURMA ${i+1} (${c.length} alunos)\n----------------\n`;
+                c.sort((a,b)=>a.name.localeCompare(b.name)).forEach(s => t += `${s.name} (${s.matricula})\n`);
+                t += "\n";
+            });
+            document.getElementById('exportTextArea').value = t;
+            document.getElementById('exportDialog').showModal();
+        }
+
+        function exportExcelResults() {
+            if (!generatedClasses.length) return showToast("Gere primeiro.");
+            if (auth.currentUser) logActionToRTDB("RemanejIA", "Exportou Excel", auth.currentUser.uid);
+            const wb = XLSX.utils.book_new();
+            generatedClasses.forEach((c, i) => {
+                const data = [["Matricula","Nome","Genero","Origem","Nova Turma"], ...c.map(s => [s.matricula, s.name, s.gender, s.originalClass, `Turma ${i+1}`])];
+                XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(data), `Turma ${i+1}`);
+            });
+            XLSX.writeFile(wb, "Enturmacao_RemanejIA.xlsx");
+        }
+
+        function saveConfiguration() {
+            if (auth.currentUser) logActionToRTDB("RemanejIA", "Salvou Backup JSON", auth.currentUser.uid);
+            const dataToSave = collectRemanejIAData();
+            const blob = new Blob([JSON.stringify(dataToSave)], {type: "application/json"});
+            const a = document.createElement('a');
+            a.href = URL.createObjectURL(blob);
+            a.download = "projeto_remanejia.json";
+            a.click();
+        }
+
+        function loadConfiguration(e) {
+            const r = new FileReader();
+            r.onload = evt => {
+                try {
+                    const d = JSON.parse(evt.target.result);
+                    students = d.students || [];
+                    document.getElementById('numNewClasses').value = d.numClasses || 3;
+                    document.getElementById('shuffleIntensity').value = d.shuffleIntensity ?? 50;
+                    document.getElementById('shuffleValue').textContent = (d.shuffleIntensity ?? 50) + '%';
+                    kioskSettings = d.kioskSettings || { showFriends: true, showEnemies: true };
+                    document.getElementById('kioskShowFriends').checked = kioskSettings.showFriends;
+                    document.getElementById('kioskShowEnemies').checked = kioskSettings.showEnemies;
+                    renderStudents();
+                    renderRelations();
+                    showToast("Projeto carregado!");
+                    openTab('tabAlunos');
+                } catch (err) { showToast("Erro no arquivo JSON."); }
+            };
+            r.readAsText(e.target.files[0]);
+        }
+
+        function collectRemanejIAData() {
+            return {
+                students: students,
+                numClasses: document.getElementById('numNewClasses').value,
+                shuffleIntensity: parseInt(document.getElementById('shuffleIntensity').value),
+                kioskSettings: {
+                    showFriends: document.getElementById('kioskShowFriends').checked,
+                    showEnemies: document.getElementById('kioskShowEnemies').checked
+                }
+            };
+        }
+
+        function saveToCloud() {
+            if (!auth.currentUser) return showToast("Você precisa estar logado.");
+            const dataToSave = collectRemanejIAData();
+            database.ref('dados_remanejia/' + auth.currentUser.uid).set(dataToSave)
+                .then(() => {
+                    kioskSettings = dataToSave.kioskSettings;
+                    showToast("Projeto salvo na nuvem!");
+                })
+                .catch(err => showToast("Erro ao salvar: " + err.message));
+        }
+
+        function loadFromCloud() {
+            if (!auth.currentUser) return showToast("Você precisa estar logado.");
+            if (!confirm("Carregar projeto da nuvem? O progresso atual será perdido.")) return;
+            database.ref('dados_remanejia/' + auth.currentUser.uid).once('value')
+                .then(snapshot => {
+                    if (snapshot.exists()) {
+                        const data = snapshot.val();
+                        students = data.students || [];
+                        document.getElementById('numNewClasses').value = data.numClasses || 3;
+                        document.getElementById('shuffleIntensity').value = data.shuffleIntensity ?? 50;
+                        document.getElementById('shuffleValue').textContent = (data.shuffleIntensity ?? 50) + '%';
+                        kioskSettings = data.kioskSettings || { showFriends: true, showEnemies: true };
+                        document.getElementById('kioskShowFriends').checked = kioskSettings.showFriends;
+                        document.getElementById('kioskShowEnemies').checked = kioskSettings.showEnemies;
+                        renderStudents();
+                        renderRelations();
+                        showToast("Projeto carregado da nuvem!");
+                        openTab('tabAlunos');
+                    } else { showToast("Nenhum projeto encontrado na nuvem."); }
+                })
+                .catch(err => showToast("Erro ao carregar: " + err.message));
+        }
+
+        // ==========================================
+        // INICIALIZAÇÃO
+        // ==========================================
+        document.addEventListener('DOMContentLoaded', () => {
+            // Atualiza o valor exibido do slider
+            document.getElementById('shuffleValue').textContent = document.getElementById('shuffleIntensity').value + '%';
+            const kioskUid = isKioskMode();
+            if (kioskUid) {
+                startKioskMode(kioskUid);
+            } else {
+                loadAccountChooser();
+            }
+        });
+    </script>
+</body>
+</html>

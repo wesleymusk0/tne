@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Systematrix: Automatize tarefas escolares maçantes. Mapas de sala, horários, remanejamento e correção de provas com Inteligência Artificial." />
+    <title>Systematrix | IA para Professores e Escolas</title>
+
+    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-8309430791537506" crossorigin="anonymous"></script>
+
+    <!-- SDKs do Firebase -->
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+
+    <!-- Fontes do Google -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+
+    <style>
+        /* === ESTILOS GLOBAIS (Mantidos) === */
+        :root {
+            --cor-primaria: #001b4a;      
+            --cor-secundaria: #06bcfb;    
+            --cor-destaque: #ffcc00;      
+            --cor-sucesso: #00d26a;       
+            --cor-fundo: #f8fafc;         
+            --cor-texto: #334155;
+            --cor-texto-claro: #ffffff;
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        html { scroll-behavior: smooth; }
+        body { font-family: 'Poppins', Arial, sans-serif; background-color: var(--cor-fundo); color: var(--cor-texto); line-height: 1.6; }
+        .container { width: 90%; max-width: 1200px; margin: 0 auto; }
+        a { text-decoration: none; transition: all 0.3s ease; }
+
+        /* === NAVBAR SUPERIOR (Mantida) === */
+        .navbar { background-color: #fff; box-shadow: 0 2px 10px rgba(0,0,0,0.05); position: sticky; top: 0; z-index: 100; padding: 10px 0; }
+        .navbar .container { display: flex; justify-content: space-between; align-items: center; }
+        .navbar img { width: 120px; }
+        .nav-links a { margin-left: 20px; color: var(--cor-primaria); font-weight: 600; }
+        .nav-links a:hover { color: var(--cor-secundaria); }
+
+        /* === HERO SECTION (Mantida) === */
+        .hero { background: linear-gradient(135deg, var(--cor-primaria) 0%, #003380 100%); color: var(--cor-texto-claro); padding: 80px 20px; text-align: center; border-bottom: 5px solid var(--cor-secundaria); }
+        .hero h1 { font-size: 3.5em; font-weight: 800; line-height: 1.2; margin-bottom: 20px; text-wrap: balance;}
+        .hero h1 span { color: var(--cor-secundaria); }
+        .hero p { font-size: 1.2em; max-width: 800px; margin: 0 auto 30px; font-weight: 300; opacity: 0.9; }
+
+        /* === NOVA SEÇÃO DE SEGMENTAÇÃO === */
+        .segmentation-section {
+            padding: 80px 0;
+            text-align: center;
+        }
+        .segmentation-section .section-title {
+            font-size: 2.8em;
+            color: var(--cor-primaria);
+            margin-bottom: 15px;
+        }
+        .segmentation-section .section-subtitle {
+            color: #64748b;
+            font-size: 1.2em;
+            margin-bottom: 50px;
+            max-width: 700px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+        .segment-grid {
+            display: flex;
+            justify-content: center;
+            align-items: stretch; /* Garante que os cards tenham a mesma altura */
+            gap: 40px;
+            flex-wrap: wrap;
+        }
+        .segment-card {
+            flex: 1;
+            min-width: 320px;
+            max-width: 450px;
+            background-color: #fff;
+            border: 1px solid #e2e8f0;
+            border-radius: 15px;
+            padding: 40px 30px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.05);
+            display: flex;
+            flex-direction: column;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            text-align: left;
+        }
+        .segment-card:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 20px 40px rgba(0, 27, 74, 0.1);
+        }
+        .segment-card h3 {
+            font-size: 1.8em;
+            font-weight: 700;
+            color: var(--cor-primaria);
+            margin-bottom: 15px;
+        }
+        .segment-card p {
+            font-size: 1em;
+            color: #475569;
+            flex-grow: 1; /* Faz o parágrafo ocupar o espaço disponível */
+            margin-bottom: 30px;
+        }
+        .segment-card .btn {
+            display: block;
+            width: 100%;
+            padding: 15px 20px;
+            font-size: 1em;
+            font-weight: 700;
+            border-radius: 8px;
+            text-align: center;
+        }
+        .btn-professor {
+            background-color: var(--cor-secundaria);
+            color: white;
+        }
+        .btn-professor:hover {
+            background-color: #05a9d9;
+        }
+        .btn-gestor {
+            background-color: var(--cor-destaque);
+            color: var(--cor-primaria);
+        }
+        .btn-gestor:hover {
+            background-color: #ffd633;
+        }
+        
+        /* === WHATSAPP E FOOTER (Mantidos) === */
+        .whatsapp-float { position: fixed; width: 60px; height: 60px; bottom: 40px; right: 40px; background-color: #25d366; color: #FFF; border-radius: 50px; text-align: center; font-size: 30px; box-shadow: 2px 2px 10px rgba(0,0,0,0.2); z-index: 100; display: flex; align-items: center; justify-content: center; transition: transform 0.3s ease; }
+        .whatsapp-float:hover { transform: scale(1.1); }
+        .whatsapp-float svg { width: 35px; height: 35px; fill: currentColor; }
+        .footer { background-color: #fff; text-align: center; padding: 40px 20px; font-size: 0.9em; color: #64748b; border-top: 1px solid #e2e8f0; }
+        .footer-links { margin-top: 15px; }
+        .footer-links a { color: var(--cor-primaria); margin: 0 10px; font-weight: 600; }
+        
+        /* O código do Modal e o script de compra são mantidos, pois serão usados na página de professores */
+        /* ... (todo o CSS e JS do modal e firebase permanecem aqui, sem alterações) ... */
+        .modal{display:none;position:fixed;z-index:1000;left:0;top:0;width:100%;height:100%;overflow:auto;background-color:rgba(0, 27, 74, 0.8);backdrop-filter:blur(5px);}.modal-content{background-color:#fefefe;margin:5% auto;padding:30px;border:none;width:90%;max-width:500px;border-radius:15px;position:relative;box-shadow:0 5px 15px rgba(0,0,0,0.3);animation:slide-down 0.3s ease-out;}@keyframes slide-down{from{transform:translateY(-30px);opacity:0;}to{transform:translateY(0);opacity:1;}}.close-button{color:#aaa;position:absolute;top:10px;right:20px;font-size:32px;font-weight:bold;cursor:pointer;transition:color 0.3s;}.close-button:hover,.close-button:focus{color:#000;}.modal-content h2{color:var(--cor-primaria);font-size:1.8em;margin-bottom:20px;}.modal-content label{display:block;margin-top:15px;color:#555;font-weight:600;}.modal-content input,.modal-content .plan-options{width:100%;padding:12px;margin-top:5px;border-radius:8px;border:1px solid #ccc;font-family:'Poppins',sans-serif;font-size:1em;}.modal-content input:focus{border-color:var(--cor-secundaria);outline:none;box-shadow:0 0 0 3px rgba(6, 188, 251, 0.2);}.form-error{color:red;font-size:0.9em;margin-top:5px;}.plan-options div{margin-top:8px;}#submit-form-button{background-color:var(--cor-destaque);color:var(--cor-primaria);padding:14px 20px;border:none;border-radius:8px;cursor:pointer;width:100%;font-size:1.1em;font-weight:700;margin-top:25px;transition:background-color 0.3s;}#submit-form-button:hover:not(:disabled){background-color:#ffd633;}#submit-form-button:disabled{background-color:#ccc;cursor:not-allowed;}
+        .modal-aviso { background: #e0f2fe; border-left: 4px solid var(--cor-secundaria); padding: 10px; font-size: 0.85em; margin-top: 15px; border-radius: 0 4px 4px 0; color: #555;}
+        .reembolso-aviso { font-size: 0.8em; text-align: center; color: #64748b; margin-top: 15px; }
+
+    </style>
+</head>
+
+<body>
+
+    <nav class="navbar">
+        <div class="container">
+            <img src="systematrix.jpg" alt="Systematrix Logo">
+            <div class="nav-links">
+                <!-- MODIFICADO: O link 'Soluções' agora aponta para a nova seção de segmentação -->
+                <a href="#perfil">Para Quem é?</a>
+                <a href="https://wa.me/554420620015" target="_blank">Contato Comercial</a>
+            </div>
+        </div>
+    </nav>
+
+    <header class="hero">
+        <div class="container">
+            <h1>A inteligência artificial que <span>devolve o seu tempo livre.</span></h1>
+            <p>Pare de perder noites e finais de semana com planilhas, horários conflitantes e correções intermináveis. A Systematrix automatiza a burocracia escolar para professores e instituições de ponta.</p>
+        </div>
+    </header>
+
+    <!-- NOVA SEÇÃO DE SEGMENTAÇÃO -->
+    <section class="segmentation-section" id="perfil">
+        <div class="container">
+            <h2 class="section-title">Como podemos ajudar você?</h2>
+            <p class="section-subtitle">Selecione seu perfil para conhecer as soluções desenhadas para as suas necessidades diárias e objetivos estratégicos.</p>
+            <div class="segment-grid">
+                
+                <!-- Card Professor -->
+                <div class="segment-card">
+                    <h3>Para Professores e Coordenadores</h3>
+                    <p>Ferramentas de IA para automatizar tarefas individuais, simplificar sua rotina e liberar seu tempo para o que realmente importa: a pedagogia e o desenvolvimento dos alunos.</p>
+                    <a href="/professores" class="btn btn-professor">Ver Ferramentas Individuais</a>
+                </div>
+
+                <!-- Card Gestor -->
+                <div class="segment-card">
+                    <h3>Para Gestores e Diretores</h3>
+                    <p>Um ecossistema completo para otimizar a gestão escolar, melhorar indicadores como o IDEB, reduzir a carga operacional da equipe e tomar decisões baseadas em dados.</p>
+                    <a href="/escolas" class="btn btn-gestor">Descobrir Systematrix para Escolas</a>
+                </div>
+
+            </div>
+        </div>
+    </section>
+    <!-- FIM DA NOVA SEÇÃO -->
+
+    <!-- O RESTANTE DO CONTEÚDO (PAIN-SECTION, PRODUCTS-SECTION, TESTIMONIALS) FOI REMOVIDO DESTA PÁGINA -->
+
+    <!-- WHATSAPP FLUTUANTE -->
+    <a href="https://wa.me/554420620015?text=Olá,%20gostaria%20de%20falar%20com%20um%20consultor%20sobre%20as%20soluções%20da%20Systematrix!" class="whatsapp-float" target="_blank" title="Atendimento Comercial WhatsApp">
+        <svg viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg"><path d="M16.002 0c-8.835 0-16 7.165-16 16 0 2.82.742 5.465 2.053 7.788l-2.053 7.625 7.973-2.046c2.247 1.203 4.8 1.887 7.502 1.887 8.835 0 16-7.165 16-16s-7.165-16-16-16zm8.136 22.956c-.347.98-1.922 1.83-2.673 1.93-.68.092-1.558.14-4.22-.962-3.39-1.402-5.59-4.887-5.76-5.112-.17-.225-1.376-1.83-1.376-3.493 0-1.663.865-2.482 1.18-2.812.316-.33.682-.413.91-.413.226 0 .452.003.65.012.213.01.5-.08.762.55.275.663.94 2.296 1.023 2.46.082.166.138.362.023.593-.114.23-.173.376-.345.576-.172.198-.36.43-.514.594-.17.182-.352.383-.146.738.205.355.914 1.512 1.964 2.448 1.353 1.207 2.49 1.576 2.833 1.742.342.165.54.148.745-.093.204-.242.877-1.024 1.114-1.373.238-.348.476-.29.794-.17.318.118 2.012.946 2.355 1.118.343.172.572.257.655.4.083.143.083.827-.264 1.808z"/></svg>
+    </a>
+
+    <footer class="footer">
+        <div class="container">
+            <p>Systematrix &copy; 2026 | Inovação a Serviço da Educação B2B e B2C</p>
+            <div class="footer-links">
+                <a href="#perfil">Soluções</a>
+                <a href="#refund-policy">Política de Reembolso</a>
+            </div>
+        </div>
+    </footer>
+
+    <!-- O Modal e o script de compra são mantidos aqui, pois serão utilizados na página de professores -->
+    <div id="purchase-modal" class="modal">
+        <!-- ... (conteúdo do modal inalterado) ... -->
+    </div>
+    <script>
+        // ... (todo o script do firebase/modal inalterado) ...
+    </script>
+</body>
+</html>

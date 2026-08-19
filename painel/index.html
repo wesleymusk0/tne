@@ -1,0 +1,870 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Painel Gestor | Systematrix</title>
+    
+    <!-- Fontes e Ícones -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- SDKs do Firebase -->
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+
+    <style>
+        /* ==========================================
+           CORES ORIGINAIS SYSTEMATRIX + CO-BRANDING
+           ========================================== */
+        :root {
+            --primary: #001b4a; 
+            --info: #06bcfb;    
+            --danger: #ff4d4d;
+            --success: #28a745;
+            --warning: #ffc107;
+            
+            --bg: #f4f7f6;
+            --surface: #ffffff;
+            --text-main: #333333;
+            --text-muted: #666666;
+            --border-color: #e2e8f0;
+            
+            --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+            --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            --radius-md: 8px;
+            --radius-lg: 12px;
+
+            /* Cor Institucional (Sobrescrita via JS) */
+            --inst-cor: #001b4a; 
+            --primary-text: #ffffff;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        body { 
+            font-family: 'Poppins', 'Inter', sans-serif; 
+            line-height: 1.6; 
+            background-color: var(--bg); 
+            color: var(--text-main); 
+            -webkit-font-smoothing: antialiased; 
+            padding-bottom: 70px;
+        }
+
+        /* ==========================================
+           TELA DE LOGIN
+           ========================================== */
+        #login-screen { 
+            display: flex; flex-direction: column; justify-content: center; align-items: center; 
+            min-height: 100vh; padding: 20px; background-color: var(--primary); 
+        }
+        
+        .login-box { 
+            width: 100%; max-width: 400px; padding: 40px; background: var(--surface); 
+            box-shadow: var(--shadow-md); border-radius: var(--radius-lg); text-align: center; 
+        }
+        
+        .login-box img { height: 60px; margin-bottom: 20px; border-radius: 8px; }
+        .login-box h2 { color: var(--primary); margin-bottom: 25px; font-size: 1.6rem; font-weight: 600;}
+        
+        .input-group { margin-bottom: 15px; text-align: left; }
+        .input-group label { display: block; color: var(--text-muted); margin-bottom: 5px; font-weight: 500; font-size: 0.9rem;}
+        .input-group input, .input-group select { width: 100%; padding: 12px; border: 1px solid var(--border-color); border-radius: var(--radius-md); box-sizing: border-box; background-color: #f8fafc; transition: 0.2s; font-family: inherit; font-size: 1rem; }
+        .input-group input:focus, .input-group select:focus { outline: none; border-color: var(--info); box-shadow: 0 0 0 3px rgba(6, 188, 251, 0.2); }
+
+        /* ==========================================
+           BOTÕES GERAIS
+           ========================================== */
+        button, .btn { padding: 10px 20px; border: none; border-radius: var(--radius-md); font-weight: 600; cursor: pointer; transition: all 0.2s ease; font-size: 0.95rem; font-family: inherit; display: inline-flex; align-items: center; justify-content: center; gap: 8px; }
+        
+        .btn-primary { background: var(--inst-cor); color: var(--primary-text); }
+        .btn-primary:hover:not(:disabled) { filter: brightness(0.9); transform: translateY(-1px); box-shadow: var(--shadow-sm); }
+        
+        .btn-danger { background: var(--danger); color: white; }
+        .btn-danger:hover:not(:disabled) { background: #e60000; }
+        .btn-success { background: var(--success); color: white; }
+        .btn-success:hover:not(:disabled) { background: #218838; }
+        .btn-info { background: var(--info); color: white; }
+        
+        .btn-block { width: 100%; display: block; }
+        button:disabled { opacity: 0.6; cursor: not-allowed; }
+
+        /* ==========================================
+           APP PRINCIPAL E ABAS
+           ========================================== */
+        #app-container { display: none; max-width: 1200px; margin: 30px auto; padding: 0 20px; }
+        
+        header { 
+            display: flex; justify-content: space-between; align-items: center; 
+            margin-bottom: 30px; background: var(--inst-cor); padding: 20px 30px; 
+            border-radius: var(--radius-lg); color: var(--primary-text);
+            box-shadow: var(--shadow-md); flex-wrap: wrap; gap: 15px;
+        }
+        header h1 { margin: 0; font-size: 1.5rem; display: flex; align-items: center; gap: 12px; }
+        header img { height: 40px; border-radius: 4px; background: white; padding: 2px;}
+
+        .tri-nav { display: flex; gap: 5px; margin-bottom: 25px; background: #e2e8f0; border-radius: var(--radius-md); padding: 6px; flex-wrap: wrap; list-style: none; }
+        .tab-button { background: none; border: none; padding: 12px 20px; cursor: pointer; font-size: 0.95rem; color: var(--text-muted); transition: 0.3s; font-weight: 600; flex: 1; border-radius: 6px; text-align: center; display:flex; justify-content: center; align-items:center; gap:8px;}
+        .tab-button:hover { color: var(--primary); }
+        .tab-button.active { color: var(--primary-text); background: var(--inst-cor); box-shadow: var(--shadow-sm); }
+        
+        .tab-panel { display: none; animation: fadeIn 0.4s; }
+        .tab-panel.active { display: block; }
+
+        .card { background: var(--surface); border-radius: var(--radius-lg); padding: 25px; box-shadow: var(--shadow-sm); border: 1px solid var(--border-color); margin-bottom: 20px; }
+        .card h3 { margin-top: 0; color: var(--inst-cor); font-size: 1.3rem; border-bottom: 2px solid #f1f5f9; padding-bottom: 10px; margin-bottom: 20px;}
+
+        /* ==========================================
+           TABELAS E BADGES
+           ========================================== */
+        .table-wrapper { overflow-x: auto; border: 1px solid var(--border-color); border-radius: var(--radius-md); }
+        table { width: 100%; border-collapse: collapse; min-width: 700px; font-size: 0.95rem; }
+        th, td { padding: 12px 15px; text-align: left; border-bottom: 1px solid var(--border-color); }
+        th { background-color: #f8fafc; color: var(--text-muted); font-weight: 600; white-space: nowrap;}
+        
+        .badge { padding: 5px 10px; border-radius: 12px; font-size: 0.8em; margin-right: 5px; margin-bottom: 5px; display: inline-block; font-weight: 500;}
+        .badge-sistema { background: #e2e8f0; color: #475569; border: 1px solid #cbd5e1;}
+        .status-ativo { background: #dcfce7; color: #065f46; border: 1px solid #a7f3d0;}
+        .status-inativo { background: #fee2e2; color: #991b1b; border: 1px solid #fecaca;}
+
+        .checkbox-group { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 10px; margin-top: 10px; margin-bottom: 20px;}
+        .checkbox-item { background: #f8fafc; padding: 10px; border-radius: var(--radius-md); font-size: 0.9em; display: flex; align-items: center; gap: 8px; border: 1px solid var(--border-color); cursor: pointer; transition: 0.2s;}
+        .checkbox-item:hover { background: #f1f5f9; border-color: var(--info); }
+        .checkbox-item input { transform: scale(1.2); accent-color: var(--inst-cor); cursor: pointer;}
+
+        .modal { display: none; position: fixed; top:0; left:0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); z-index: 1000; justify-content: center; align-items: center; backdrop-filter: blur(3px);}
+        .modal-content { background: var(--surface); padding: 30px; border-radius: var(--radius-lg); width: 90%; max-width: 500px; box-shadow: 0 10px 25px rgba(0,0,0,0.2); animation: fadeIn 0.3s;}
+        .modal-content h3 { color: var(--inst-cor); border-bottom: 2px solid #f1f5f9; padding-bottom: 10px; margin-bottom: 20px;}
+
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+        /* ==========================================
+           ESTILOS DO NOVO CONSTRUTOR DE LAYOUT
+           ========================================== */
+        .layout-row {
+            background: #f8fafc;
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-md);
+            padding: 15px;
+            margin-bottom: 15px;
+            box-shadow: inset 0 2px 4px rgba(0,0,0,0.02);
+        }
+        .layout-row-header {
+            display: flex; justify-content: space-between; align-items: center;
+            border-bottom: 1px dashed var(--border-color); padding-bottom: 10px; margin-bottom: 15px;
+        }
+        .layout-columns { display: flex; gap: 15px; flex-wrap: wrap; }
+        .layout-col {
+            flex: 1; min-width: 250px; background: var(--surface);
+            border: 1px solid var(--border-color); border-radius: 6px; padding: 15px;
+            position: relative; box-shadow: var(--shadow-sm);
+        }
+        .layout-col-delete {
+            position: absolute; top: -10px; right: -10px; background: var(--danger); color: white;
+            border: none; border-radius: 50%; width: 25px; height: 25px; cursor: pointer;
+            display: flex; align-items: center; justify-content: center; font-size: 12px;
+        }
+        .col-settings { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 10px; }
+        
+        .prop-label { font-size: 0.8em; font-weight: 500; color: var(--text-muted); display: block; margin-bottom: 4px; }
+        .prop-input { width: 100%; padding: 6px 10px; border-radius: 4px; border: 1px solid var(--border-color); font-size: 0.9em; }
+        
+        @media (max-width: 768px) {
+            header { flex-direction: column; text-align: center; }
+            .tri-nav { flex-direction: column; }
+            .checkbox-group { grid-template-columns: 1fr; }
+            .layout-columns { flex-direction: column; }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- TELA DE LOGIN -->
+    <div id="login-screen">
+        <div class="login-box">
+            <img src="systematrix.jpg" alt="Systematrix" style="height: 60px; margin-bottom: 15px; border-radius: 10px;" onerror="this.style.display='none'">
+            <h2><i class="fas fa-user-shield"></i> Painel Gestor</h2>
+            <form id="form-login" onsubmit="realizarLogin(event)">
+                <div class="input-group">
+                    <label>E-mail Institucional</label>
+                    <input type="email" id="login-email" placeholder="gestor@escola.com" required>
+                </div>
+                <div class="input-group">
+                    <label>Senha</label>
+                    <input type="password" id="login-senha" placeholder="••••••••" required>
+                </div>
+                <button type="submit" class="btn btn-block" style="background: var(--info); color: white; margin-top: 10px; font-size: 1.1rem;">
+                    Entrar no Painel <i class="fas fa-sign-in-alt"></i>
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- MAIN APP CONTAINER -->
+    <main id="app-container">
+        
+        <header id="main-header">
+            <div>
+                <h1 id="inst-name-header">Carregando...</h1>
+                <div style="font-size: 0.9rem; opacity: 0.9; margin-top: 5px;">
+                    <i class="fas fa-user-circle"></i> Olá, <strong id="nome-gestor">Gestor</strong>
+                </div>
+            </div>
+            <div style="display: flex; align-items: center; gap: 15px;">
+                <img src="" id="inst-logo-preview" alt="Logo Escola" style="display:none;">
+                <button class="btn" style="background: rgba(255,255,255,0.2); color: var(--primary-text); border: 1px solid rgba(255,255,255,0.4);" onclick="sair()">
+                    Sair <i class="fas fa-sign-out-alt"></i>
+                </button>
+            </div>
+        </header>
+
+        <!-- Navegação em Abas -->
+        <ul class="tri-nav">
+            <li><button class="tab-button active" onclick="switchTab('dashboard', this)"><i class="fas fa-chart-pie"></i> Visão Geral</button></li>
+            <li><button class="tab-button" onclick="switchTab('professores', this)"><i class="fas fa-chalkboard-teacher"></i> Professores</button></li>
+            <li><button class="tab-button" onclick="switchTab('personalizacao', this)"><i class="fas fa-palette"></i> Personalização & Layout</button></li>
+            <li><button class="tab-button" onclick="switchTab('logs', this)"><i class="fas fa-history"></i> Atividades</button></li>
+        </ul>
+
+        <!-- ABA: VISÃO GERAL -->
+        <section id="dashboard" class="tab-panel active">
+            <div class="card">
+                <h3><i class="fas fa-chart-pie"></i> Resumo da Instituição</h3>
+                <div style="display: flex; gap: 20px; flex-wrap: wrap;">
+                    <div style="background: #f8fafc; border: 1px solid var(--border-color); padding: 25px; border-radius: var(--radius-md); flex: 1; min-width: 200px; text-align: center; box-shadow: var(--shadow-sm);">
+                        <i class="fas fa-users" style="font-size: 2.5em; color: var(--info); margin-bottom: 10px;"></i>
+                        <h4 style="font-size: 2.5em; margin: 0; color: var(--inst-cor);" id="total-professores">0</h4>
+                        <p style="color: var(--text-muted); margin: 0; font-weight: 500;">Professores Cadastrados</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ABA: PROFESSORES -->
+        <section id="professores" class="tab-panel">
+            <div class="card">
+                <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 15px; margin-bottom: 20px;">
+                    <h3 style="margin: 0; border: none; padding: 0;"><i class="fas fa-chalkboard-teacher"></i> Gerenciar Professores</h3>
+                    <button class="btn btn-primary" onclick="abrirModal()"><i class="fas fa-plus"></i> Novo Professor</button>
+                </div>
+                <div class="table-wrapper">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Nome</th>
+                                <th>Email</th>
+                                <th>Sistemas Liberados</th>
+                                <th>Status</th>
+                                <th>Ações</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tabela-professores">
+                            <tr><td colspan="5" style="text-align: center;">Carregando dados...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+        <!-- ABA: PERSONALIZAÇÃO -->
+        <section id="personalizacao" class="tab-panel">
+            <div class="card">
+                <h3><i class="fas fa-palette"></i> Identidade Visual Básica</h3>
+                <div style="background: #fff8e1; border-left: 4px solid var(--warning); padding: 15px; border-radius: 4px; margin-bottom: 20px; font-size: 0.9em; color: var(--text-main);">
+                    <i class="fas fa-info-circle"></i> Essas configurações serão aplicadas automaticamente nos sistemas quando seus professores fizerem login.
+                </div>
+                
+                <div style="max-width: 600px;">
+                    <div class="input-group">
+                        <label>Nome da Instituição</label>
+                        <input type="text" id="config-nome" placeholder="Ex: Colégio Alpha">
+                    </div>
+                    <div class="input-group">
+                        <label>Cor Principal (Hexadecimal)</label>
+                        <div style="display: flex; gap: 10px; align-items: center;">
+                            <input type="color" id="config-cor" value="#001b4a" style="width: 60px; height: 45px; padding: 2px; cursor: pointer;">
+                            <span class="small text-muted">Escolha a cor predominante da sua marca.</span>
+                        </div>
+                    </div>
+                    <div class="input-group">
+                        <label>URL da Logo (PNG transparente recomendado)</label>
+                        <input type="text" id="config-logo" placeholder="https://site.com/logo.png">
+                    </div>
+                </div>
+            </div>
+
+            <!-- NOVO EDITOR DE LAYOUT (PROVIA) -->
+            <div class="card">
+                <h3><i class="fas fa-table"></i> Construtor de Layout do Cabeçalho (Destinado ao sistema ProvIA)</h3>
+                <div style="background: #f0fdf4; border-left: 4px solid var(--success); padding: 15px; border-radius: 4px; margin-bottom: 20px; font-size: 0.9em;">
+                    <i class="fas fa-lightbulb"></i> Construa o cabeçalho das provas da sua escola usando linhas e blocos. Esse formato garante que <strong>nada fique desalinhado na hora da impressão</strong>, independente do tamanho do texto digitado pelo professor.
+                </div>
+                <div style="background: #ffff00; border-left: 4px solid var(--success); padding: 15px; border-radius: 4px; margin-bottom: 20px; font-size: 0.9em;">
+                    <i class="fas fa-lightbulb"></i> Construa o cabeçalho das provas da sua escola usando linhas e blocos. Esse formato garante que <strong>nada fique desalinhado na hora da impressão</strong>, independente do tamanho do texto digitado pelo professor.
+                </div>
+
+                <div style="margin-bottom: 15px; display: flex; gap: 10px;">
+                    <button class="btn btn-secondary" style="background: #e2e8f0; color: #333;" onclick="adicionarLinhaLayout()">
+                        <i class="fas fa-plus-square"></i> Adicionar Nova Linha
+                    </button>
+                    <button class="btn btn-danger" onclick="limparTodoLayout()">
+                        <i class="fas fa-trash"></i> Limpar Tudo
+                    </button>
+                </div>
+
+                <!-- Container onde as linhas serão renderizadas pelo JS -->
+                <div id="layout-builder-container"></div>
+            </div>
+
+            <button class="btn btn-primary" style="width: 100%; padding: 15px; font-size: 1.1rem; margin-top: 10px;" id="btn-salvar-personalizacao" onclick="salvarPersonalizacao()">
+                <i class="fas fa-save"></i> Salvar Toda Personalização e Layout
+            </button>
+        </section>
+
+        <!-- ABA: LOGS -->
+        <section id="logs" class="tab-panel">
+            <div class="card">
+                <h3><i class="fas fa-history"></i> Log de Atividades</h3>
+                <div class="table-wrapper">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Data/Hora</th>
+                                <th>Gestor</th>
+                                <th>Ação / Detalhe</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tabela-logs">
+                            <tr><td colspan="3" style="text-align: center;">Carregando histórico...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <footer style="text-align: center; padding: 20px; color: var(--text-muted); font-size: 0.9em;">
+        Painel Institucional &copy; <span style="color: var(--sys-primary); font-weight: 600;">Systematrix</span> | 2026
+    </footer>
+
+    <!-- MODAIS (CADASTRAR E EDITAR PROFESSOR) - MANTIDOS COMO ORIGINAIS -->
+    <div id="modal-professor" class="modal">
+        <div class="modal-content">
+            <h3><i class="fas fa-user-plus"></i> Cadastrar Professor</h3>
+            <form id="form-novo-prof" onsubmit="salvarNovoProfessor(event)">
+                <div class="input-group">
+                    <label>Nome Completo</label>
+                    <input type="text" id="prof-nome" required>
+                </div>
+                <div class="input-group">
+                    <label>Email Institucional (Login)</label>
+                    <input type="email" id="prof-email" required>
+                </div>
+                <div class="input-group">
+                    <label>Senha</label>
+                    <input type="text" id="prof-senha" required minlength="6">
+                </div>
+                
+                <label style="font-weight: 600; font-size: 0.9em; display:block; margin-top: 20px; color: var(--text-muted);">Sistemas Liberados:</label>
+                <div class="checkbox-group"></div>
+                
+                <div style="display: flex; gap: 10px; margin-top: 25px;">
+                    <button type="submit" class="btn btn-primary" id="btn-salvar-prof" style="flex: 1;"><i class="fas fa-check"></i> Criar Conta</button>
+                    <button type="button" class="btn" style="background:#e2e8f0; color:#475569;" onclick="fecharModal()">Cancelar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div id="modal-editar-professor" class="modal">
+        <div class="modal-content">
+            <h3><i class="fas fa-user-edit"></i> Editar Professor</h3>
+            <form id="form-editar-prof" onsubmit="salvarEdicaoProfessor(event)">
+                <input type="hidden" id="edit-uid">
+                <div class="input-group">
+                    <label>Nome Completo</label>
+                    <input type="text" id="edit-nome" required>
+                </div>
+                <div class="input-group">
+                    <label>Email (Login - Não editável)</label>
+                    <input type="email" id="edit-email" disabled style="background-color: #f1f5f9; color: #94a3b8; cursor: not-allowed;">
+                </div>
+                
+                <label style="font-weight: 600; font-size: 0.9em; display:block; margin-top: 20px; color: var(--text-muted);">Sistemas Liberados:</label>
+                <div class="checkbox-group"></div>
+                
+                <div style="display: flex; gap: 10px; margin-top: 25px;">
+                    <button type="submit" class="btn btn-primary" id="btn-salvar-edicao" style="flex: 1;"><i class="fas fa-save"></i> Salvar Alterações</button>
+                    <button type="button" class="btn" style="background:#e2e8f0; color:#475569;" onclick="fecharModalEdicao()">Cancelar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- JAVASCRIPT -->
+    <script>
+        // =========================================================
+        // 1. CONFIGURAÇÕES FIREBASE & VARIÁVEIS
+        // =========================================================
+        const firebaseConfig = {
+          apiKey: "AIzaSyB3p0DvbtoDNI0WUPrly4PdLwmsbn_jNUU",
+          authDomain: "systematrix-apps.firebaseapp.com",
+          databaseURL: "https://systematrix-apps-default-rtdb.firebaseio.com",
+          projectId: "systematrix-apps",
+          storageBucket: "systematrix-apps.firebasestorage.app",
+          messagingSenderId: "932627354123",
+          appId: "1:932627354123:web:f310c9babd17db8ac26d0e"
+        };
+        const WORKER_URL = "https://bepis.systematrix.com.br"; 
+
+        const SYSTEM_NAMES = {
+    mapia: "MapIA",
+    remanejia: "RemanejIA",
+    somatoria: "SomatorIA",
+    horia: "HorIA",
+    tri: "TRI Simulador",
+    avalia: "AvalIA",
+    provia: "ProvIA"
+};
+
+        if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
+        const auth = firebase.auth();
+        const db = firebase.database();
+        
+        let instIdAtual = null;
+        let cacheProfessores = {}; 
+
+        // Variável principal do NOVO Layout Builder
+        let layoutRows = [];
+
+        // =========================================================
+        // 2. LÓGICA DE LOGIN E AUTENTICAÇÃO
+        // =========================================================
+        async function realizarLogin(e) {
+            e.preventDefault();
+            const email = document.getElementById('login-email').value;
+            const senha = document.getElementById('login-senha').value;
+            try {
+                await auth.signInWithEmailAndPassword(email, senha);
+            } catch (error) {
+                alert("Erro ao logar: " + error.message);
+            }
+        }
+
+        function sair() { auth.signOut(); }
+
+        auth.onAuthStateChanged(async (user) => {
+            if (user) {
+                db.ref(`usuarios_institucionais/${user.uid}`).once('value', (snapshot) => {
+                    const dados = snapshot.val();
+                    if (dados && dados.role === 'admin') {
+                        instIdAtual = dados.instituicaoId;
+                        carregarSistemasAdquiridos();
+                        document.getElementById('nome-gestor').innerText = dados.nome;
+                        
+                        document.getElementById('login-screen').style.display = 'none';
+                        document.getElementById('app-container').style.display = 'block';
+                        
+                        carregarPersonalizacao();
+                        carregarProfessores();
+                        carregarLogs();
+                    } else {
+                        alert("Acesso Negado! Esta conta não é de Gestor.");
+                        auth.signOut();
+                    }
+                });
+            } else {
+                document.getElementById('login-screen').style.display = 'flex';
+                document.getElementById('app-container').style.display = 'none';
+            }
+        });
+
+async function carregarSistemasAdquiridos() {
+    const snap = await db.ref(`instituicoes/${instIdAtual}/acquiredSystems`).once("value");
+
+    const sistemas = snap.val() || [];
+
+    montarCheckboxes(
+        document.querySelector("#modal-professor .checkbox-group"),
+        "sistemas",
+        sistemas
+    );
+
+    montarCheckboxes(
+        document.querySelector("#modal-editar-professor .checkbox-group"),
+        "edit-sistemas",
+        sistemas
+    );
+}
+
+function montarCheckboxes(container, inputName, sistemas) {
+    container.innerHTML = "";
+
+    sistemas.forEach(sistema => {
+        const label = document.createElement("label");
+        label.className = "checkbox-item";
+
+        label.innerHTML = `
+            <input type="checkbox"
+                   name="${inputName}"
+                   value="${sistema}">
+            ${SYSTEM_NAMES[sistema] || sistema}
+        `;
+
+        container.appendChild(label);
+    });
+}
+
+        // =========================================================
+        // 3. CARREGAR DADOS DO BANCO
+        // =========================================================
+        function getContrastYIQ(hexcolor) {
+            hexcolor = hexcolor.replace("#", "");
+            if (hexcolor.length === 3) hexcolor = hexcolor.split("").map(c => c + c).join("");
+            var r = parseInt(hexcolor.substr(0,2),16), g = parseInt(hexcolor.substr(2,2),16), b = parseInt(hexcolor.substr(4,2),16);
+            var yiq = ((r*299)+(g*587)+(b*114))/1000;
+            return (yiq >= 128) ? '#000000' : '#FFFFFF';
+        }
+
+        function carregarPersonalizacao() {
+            db.ref(`instituicoes/${instIdAtual}/personalizacao`).on('value', (snap) => {
+                const config = snap.val() || {};
+                const nome = config.nome || "Minha Escola";
+                const cor = config.corPrimaria || "#001b4a";
+                const logo = config.logoUrl || "";
+
+                document.documentElement.style.setProperty('--inst-cor', cor);
+                const textColor = getContrastYIQ(cor);
+                document.documentElement.style.setProperty('--primary-text', textColor);
+                
+                document.getElementById('inst-name-header').innerText = nome;
+                
+                if (logo) {
+                    document.getElementById('inst-logo-preview').src = logo;
+                    document.getElementById('inst-logo-preview').style.display = 'block';
+                } else {
+                    document.getElementById('inst-logo-preview').style.display = 'none';
+                }
+
+                document.getElementById('config-nome').value = nome;
+                document.getElementById('config-cor').value = cor;
+                document.getElementById('config-logo').value = logo;
+
+                // Lógica de migração (Caso tenha array antigo drag-and-drop, limpa para não quebrar)
+                let layoutDb = config.layoutProva || [];
+                if(layoutDb.length > 0 && layoutDb[0].x !== undefined) {
+                    // É layout antigo! Resetar.
+                    layoutRows = [];
+                } else {
+                    layoutRows = layoutDb;
+                }
+                renderizarLayoutBuilder();
+            });
+        }
+
+        // =========================================================
+        // 4. NOVO CONSTRUTOR DE LAYOUT (PROVIA)
+        // =========================================================
+
+        function renderizarLayoutBuilder() {
+            const container = document.getElementById('layout-builder-container');
+            container.innerHTML = '';
+
+            if(layoutRows.length === 0) {
+                container.innerHTML = '<p style="color:var(--text-muted); text-align:center; padding: 20px;">Nenhuma linha adicionada. Clique em "Adicionar Nova Linha" acima.</p>';
+                return;
+            }
+
+            layoutRows.forEach((row, rIndex) => {
+                const rowDiv = document.createElement('div');
+                rowDiv.className = 'layout-row';
+                
+                // Cabeçalho da Linha
+                let html = `
+                    <div class="layout-row-header">
+                        <span style="font-weight:600; color:var(--text-muted);">Linha ${rIndex + 1}</span>
+                        <div style="display:flex; gap:10px;">
+                            <button class="btn btn-info" style="font-size:0.8em; padding: 5px 10px;" onclick="adicionarColuna(${rIndex})"><i class="fas fa-plus"></i> Adicionar Bloco na Linha</button>
+                            <button class="btn btn-danger" style="font-size:0.8em; padding: 5px 10px;" onclick="removerLinha(${rIndex})"><i class="fas fa-times"></i> Excluir Linha</button>
+                        </div>
+                    </div>
+                    <div class="layout-columns">
+                `;
+
+                // Colunas da Linha
+                row.columns.forEach((col, cIndex) => {
+                    html += `
+                        <div class="layout-col">
+                            <button class="layout-col-delete" onclick="removerColuna(${rIndex}, ${cIndex})" title="Remover este bloco"><i class="fas fa-trash"></i></button>
+                            
+                            <label class="prop-label">O que mostrar neste bloco?</label>
+                            <select class="prop-input" onchange="atualizarColuna(${rIndex}, ${cIndex}, 'typeContent', this.value)">
+                                <optgroup label="Elementos Visuais">
+                                    <option value="[LOGO]" ${col.content === '[LOGO]' ? 'selected' : ''}>Logo da Instituição</option>
+                                    <option value="TEXT_LIVRE" ${col.type === 'text' && col.content !== '[LOGO]' ? 'selected' : ''}>Texto Fixo / Título</option>
+                                </optgroup>
+                                <optgroup label="Campos Dinâmicos (Professor Preenche)">
+                                    <option value="[NOME_INSTITUICAO]" ${col.content === '[NOME_INSTITUICAO]' ? 'selected' : ''}>Nome da Escola</option>
+                                    <option value="[NOME_ALUNO]" ${col.content === '[NOME_ALUNO]' ? 'selected' : ''}>Espaço para Nome do Aluno</option>
+                                    <option value="[DATA]" ${col.content === '[DATA]' ? 'selected' : ''}>Espaço para Data</option>
+                                    <option value="[NOTA]" ${col.content === '[NOTA]' ? 'selected' : ''}>Espaço para Nota</option>
+                                    <option value="[TURMA]" ${col.content === '[TURMA]' ? 'selected' : ''}>Turma</option>
+                                    <option value="[PROFESSOR]" ${col.content === '[PROFESSOR]' ? 'selected' : ''}>Nome do Professor</option>
+                                    <option value="[COMPONENTE]" ${col.content === '[COMPONENTE]' ? 'selected' : ''}>Componente Curricular</option>
+                                    <option value="[VALOR]" ${col.content === '[VALOR]' ? 'selected' : ''}>Valor da Prova</option>
+                                    <option value="[TIPO_AVALIACAO]" ${col.content === '[TIPO_AVALIACAO]' ? 'selected' : ''}>Tipo/Bimestre</option>
+                                    <option value="[SERIE]" ${col.content === '[SERIE]' ? 'selected' : ''}>Série/Ano</option>
+                                </optgroup>
+                            </select>
+
+                            ${col.type === 'text' && col.content !== '[LOGO]' ? `
+                                <div style="margin-top:10px;">
+                                    <label class="prop-label">Digite o Texto:</label>
+                                    <input type="text" class="prop-input" value="${col.content}" onchange="atualizarColuna(${rIndex}, ${cIndex}, 'content', this.value)">
+                                </div>
+                            ` : ''}
+
+                            <div class="col-settings">
+                                <div>
+                                    <label class="prop-label">Alinhamento</label>
+                                    <select class="prop-input" onchange="atualizarColuna(${rIndex}, ${cIndex}, 'align', this.value)">
+                                        <option value="left" ${col.align === 'left' ? 'selected' : ''}>Esquerda</option>
+                                        <option value="center" ${col.align === 'center' ? 'selected' : ''}>Centro</option>
+                                        <option value="right" ${col.align === 'right' ? 'selected' : ''}>Direita</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label class="prop-label">Tamanho Letra</label>
+                                    <select class="prop-input" onchange="atualizarColuna(${rIndex}, ${cIndex}, 'fontSize', this.value)">
+                                        <option value="12px" ${col.fontSize === '12px' ? 'selected' : ''}>Pequeno</option>
+                                        <option value="16px" ${col.fontSize === '16px' ? 'selected' : ''}>Normal</option>
+                                        <option value="20px" ${col.fontSize === '20px' ? 'selected' : ''}>Grande (Títulos)</option>
+                                    </select>
+                                </div>
+                            </div>
+                            
+                            <div style="margin-top:10px;">
+                                <label style="font-size:0.85em; display:flex; align-items:center; gap:5px; cursor:pointer;">
+                                    <input type="checkbox" ${col.bold ? 'checked' : ''} onchange="atualizarColuna(${rIndex}, ${cIndex}, 'bold', this.checked)">
+                                    Texto em Negrito
+                                </label>
+                            </div>
+                        </div>
+                    `;
+                });
+
+                html += `</div>`; // Fechar colunas
+                rowDiv.innerHTML = html;
+                container.appendChild(rowDiv);
+            });
+        }
+
+        function adicionarLinhaLayout() {
+            layoutRows.push({
+                columns: [
+                    { type: 'placeholder', content: '[NOME_INSTITUICAO]', align: 'center', fontSize: '20px', bold: true }
+                ]
+            });
+            renderizarLayoutBuilder();
+        }
+
+        function removerLinha(rIndex) {
+            if(confirm("Excluir esta linha inteira?")) {
+                layoutRows.splice(rIndex, 1);
+                renderizarLayoutBuilder();
+            }
+        }
+
+        function adicionarColuna(rIndex) {
+            if(layoutRows[rIndex].columns.length >= 4) {
+                alert("Máximo de 4 blocos por linha para não quebrar a página.");
+                return;
+            }
+            layoutRows[rIndex].columns.push({ type: 'placeholder', content: '[NOME_ALUNO]', align: 'left', fontSize: '16px', bold: false });
+            renderizarLayoutBuilder();
+        }
+
+        function removerColuna(rIndex, cIndex) {
+            layoutRows[rIndex].columns.splice(cIndex, 1);
+            if(layoutRows[rIndex].columns.length === 0) {
+                layoutRows.splice(rIndex, 1); // Remove a linha se ficar sem colunas
+            }
+            renderizarLayoutBuilder();
+        }
+
+        function atualizarColuna(rIndex, cIndex, prop, value) {
+            let col = layoutRows[rIndex].columns[cIndex];
+
+            if(prop === 'typeContent') {
+                if(value === '[LOGO]') {
+                    col.type = 'image'; col.content = '[LOGO]';
+                } else if(value === 'TEXT_LIVRE') {
+                    col.type = 'text'; col.content = 'Digite aqui...';
+                } else {
+                    col.type = 'placeholder'; col.content = value;
+                }
+            } else {
+                col[prop] = value;
+            }
+            renderizarLayoutBuilder();
+        }
+
+        function limparTodoLayout() {
+            if(confirm("Tem certeza que deseja apagar todo o cabeçalho?")) {
+                layoutRows = [];
+                renderizarLayoutBuilder();
+            }
+        }
+
+
+        // =========================================================
+        // 5. SALVAMENTO E GESTÃO DE PROFESSORES / LOGS (MANTIDOS)
+        // =========================================================
+
+        async function salvarPersonalizacao() {
+            const btn = document.getElementById('btn-salvar-personalizacao');
+            const originalHTML = btn.innerHTML;
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Salvando...';
+            btn.disabled = true;
+            
+            try {
+                await db.ref(`instituicoes/${instIdAtual}/personalizacao`).update({
+                    nome: document.getElementById('config-nome').value,
+                    corPrimaria: document.getElementById('config-cor').value,
+                    logoUrl: document.getElementById('config-logo').value,
+                    layoutProva: layoutRows // Salva o novo Array de linhas
+                });
+                alert("Personalização e Layout atualizados com sucesso!");
+            } catch (e) {
+                alert("Erro ao salvar: " + e.message);
+            } finally {
+                btn.innerHTML = originalHTML;
+                btn.disabled = false;
+            }
+        }
+
+        // --- Funções de Professores e Logs inalteradas ---
+        async function carregarProfessores() {
+            const tbody = document.getElementById('tabela-professores');
+            tbody.innerHTML = '';
+            cacheProfessores = {}; 
+            const ref = db.ref(`professores_por_instituicao/${instIdAtual}`);
+            const snap = await ref.once('value');
+            if (!snap.exists()) {
+                tbody.innerHTML = '<tr><td colspan="5" style="text-align: center;">Nenhum professor cadastrado ainda.</td></tr>';
+                document.getElementById('total-professores').innerText = 0;
+                return;
+            }
+            let cont = 0;
+            const uids = Object.keys(snap.val());
+            for (const uid of uids) {
+                var profSnap = await db.ref(`usuarios_institucionais/${uid}`).once('value');
+                var prof = profSnap.val();
+                if (!prof) continue;
+                cont++;
+                cacheProfessores[uid] = prof; 
+                let sistemasBadges = (prof.sistemasAcesso || []).map(s => `<span class="badge badge-sistema">${s.toUpperCase()}</span>`).join('');
+                let statusClass = prof.status === 'ativo' ? 'status-ativo' : 'status-inativo';
+                let btnStatusTexto = prof.status === 'ativo' ? '<i class="fas fa-ban"></i> Desativar' : '<i class="fas fa-check"></i> Ativar';
+                let btnStatusCor = prof.status === 'ativo' ? 'btn-danger' : 'btn-success';
+                let acoesHtml = `<div style="display:flex; gap:5px;"><button class="btn btn-info" onclick="abrirModalEdicao('${uid}')" style="padding: 6px 10px; font-size: 0.8em;" title="Editar"><i class="fas fa-pen"></i> Editar</button><button class="btn ${btnStatusCor}" onclick="alternarStatusProfessor('${uid}')" style="padding: 6px 10px; font-size: 0.8em;">${btnStatusTexto}</button></div>`;
+                tbody.innerHTML += `<tr><td><strong>${prof.nome}</strong></td><td>${prof.email}</td><td>${sistemasBadges || '<span style="color:#aaa">Nenhum</span>'}</td><td><span class="badge ${statusClass}">${prof.status.toUpperCase()}</span></td><td>${acoesHtml}</td></tr>`;
+            }
+            document.getElementById('total-professores').innerText = cont;
+        }
+
+        function carregarLogs() {
+            db.ref(`logs_atividades/${instIdAtual}`).on('value', async (snap) => {
+                const tbody = document.getElementById('tabela-logs');
+                tbody.innerHTML = '';
+                const logsArr = [];
+                snap.forEach(child => { logsArr.push(child.val()); });
+                if (logsArr.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="3" style="text-align: center;">Nenhuma atividade recente.</td></tr>';
+                    return;
+                }
+                logsArr.sort((a, b) => b.timestamp - a.timestamp);
+                for (const log of logsArr) {
+                    const dataFormatada = new Date(log.timestamp).toLocaleString('pt-BR');
+                    const profSnap = await db.ref(`usuarios_institucionais/${log.professorUid}`).once('value');
+                    const prof = profSnap.val();
+                    const nomeProf = prof ? prof.nome : "Professor Excluído";
+                    tbody.innerHTML += `<tr><td style="font-size:0.85em; color:var(--text-muted);"><i class="far fa-clock"></i> ${dataFormatada}</td><td><span style="font-size:0.85em; background: #e2e8f0; padding: 3px 6px; border-radius: 4px;">UID: ${log.autorUid.substring(0,6)}...</span></td><td><strong>${log.acao}</strong><br><span style="font-size:0.9em; color:var(--text-muted);">Prof: ${nomeProf}<br><i class="fas fa-angle-right"></i> ${log.detalhe}</span></td></tr>`;
+                }
+            });
+        }
+
+        async function registrarAtividade(uidProfessor, acao, detalhe) {
+            const uidGestor = auth.currentUser.uid;
+            await db.ref(`logs_atividades/${instIdAtual}`).push().set({ timestamp: firebase.database.ServerValue.TIMESTAMP, autorUid: uidGestor, professorUid: uidProfessor, acao: acao, detalhe: detalhe });
+        }
+
+        async function salvarNovoProfessor(e) {
+            e.preventDefault();
+            const btn = document.getElementById('btn-salvar-prof');
+            const originalHTML = btn.innerHTML; btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Criando...'; btn.disabled = true;
+            const checkboxes = document.querySelectorAll('input[name="sistemas"]:checked');
+            const sistemasPermitidos = Array.from(checkboxes).map(cb => cb.value);
+            const payload = { instituicaoId: instIdAtual, nomeProfessor: document.getElementById('prof-nome').value, emailProfessor: document.getElementById('prof-email').value, senhaProfessor: document.getElementById('prof-senha').value, sistemasPermitidos: sistemasPermitidos };
+            try {
+                const idToken = await auth.currentUser.getIdToken();
+                const resposta = await fetch(WORKER_URL, { method: "POST", headers: { "Content-Type": "application/json", "Authorization": `Bearer ${idToken}` }, body: JSON.stringify(payload) });
+                const resultado = await resposta.json();
+                if (resposta.ok) { alert("Professor criado com sucesso!"); fecharModal(); document.getElementById('form-novo-prof').reset(); carregarProfessores(); } else { alert("Erro do Servidor: " + resultado.erro); }
+            } catch (error) { alert("Erro de conexão. Verifique se o Worker está online."); }
+            btn.innerHTML = originalHTML; btn.disabled = false;
+        }
+
+        async function salvarEdicaoProfessor(e) {
+            e.preventDefault();
+            const btn = document.getElementById('btn-salvar-edicao');
+            const originalHTML = btn.innerHTML; btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Salvando...'; btn.disabled = true;
+            const uid = document.getElementById('edit-uid').value;
+            const novoNome = document.getElementById('edit-nome').value;
+            const checkboxes = document.querySelectorAll('input[name="edit-sistemas"]:checked');
+            const novosSistemas = Array.from(checkboxes).map(cb => cb.value);
+            try {
+                await db.ref(`usuarios_institucionais/${uid}`).update({ nome: novoNome, sistemasAcesso: novosSistemas });
+                await registrarAtividade(uid, "Edição de Conta", "Gestor atualizou nome e/ou sistemas de acesso.");
+                alert("Professor atualizado com sucesso!"); fecharModalEdicao(); carregarProfessores(); 
+            } catch (error) { alert("Erro ao editar professor: " + error.message); }
+            btn.innerHTML = originalHTML; btn.disabled = false;
+        }
+
+        async function alternarStatusProfessor(uid) {
+            const prof = cacheProfessores[uid]; if (!prof) return;
+            const acaoDesejada = prof.status === 'ativo' ? 'desativar' : 'ativar';
+            const novoStatus = prof.status === 'ativo' ? 'inativo' : 'ativo';
+            if (confirm(`Tem certeza que deseja ${acaoDesejada} o acesso do professor(a) ${prof.nome}?`)) {
+                try {
+                    await db.ref(`usuarios_institucionais/${uid}`).update({ status: novoStatus });
+                    await registrarAtividade(uid, "Alteração de Status", `Gestor alterou o status para ${novoStatus.toUpperCase()}.`);
+                    carregarProfessores(); 
+                } catch (error) { alert("Erro ao alterar status: " + error.message); }
+            }
+        }
+
+        function switchTab(tabId, element) {
+            document.querySelectorAll('.tab-panel').forEach(el => el.classList.remove('active'));
+            document.querySelectorAll('.tab-button').forEach(el => el.classList.remove('active'));
+            document.getElementById(tabId).classList.add('active');
+            element.classList.add('active');
+        }
+
+        function abrirModal() { document.getElementById('modal-professor').style.display = 'flex'; }
+        function fecharModal() { document.getElementById('modal-professor').style.display = 'none'; }
+        function abrirModalEdicao(uid) { 
+            const prof = cacheProfessores[uid]; if (!prof) return;
+            document.getElementById('edit-uid').value = uid; document.getElementById('edit-nome').value = prof.nome; document.getElementById('edit-email').value = prof.email;
+            const checkboxes = document.querySelectorAll('input[name="edit-sistemas"]'); const sistemasAtuais = prof.sistemasAcesso || [];
+            checkboxes.forEach(cb => { cb.checked = sistemasAtuais.includes(cb.value); });
+            document.getElementById('modal-editar-professor').style.display = 'flex'; 
+        }
+        function fecharModalEdicao() { document.getElementById('modal-editar-professor').style.display = 'none'; }
+
+    </script>
+</body>
+</html>

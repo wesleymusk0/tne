@@ -1,0 +1,817 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ProvIA - Montador de Avaliações</title>
+    
+    <!-- Fontes e Ícones -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <!-- Scripts Externos -->
+    <script src="https://cdn.quilljs.com/1.3.6/quill.min.js"></script>
+    <link href="https://cdn.quilljs.com/1.3.6/quill.snow.css" rel="stylesheet">
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
+    
+    <style>
+        :root {
+            --primary: #7C3AED; /* Roxo padrão ProvIA */
+            --cor-primaria-inst: var(--primary); /* Sobrescrito pela instituição */
+            --primary-text: #FFFFFF; /* Texto para o botão principal */
+            --primary-hover: #6D28D9;
+            --primary-light: #F5F3FF;
+            --bg-color: #F3F4F6;
+            --surface: #FFFFFF;
+            --text-main: #1F2937;
+            --text-muted: #6B7280;
+            --border-color: #E5E7EB;
+            --danger: #EF4444;
+            --danger-hover: #DC2626;
+            --success: #10B981;
+            --warning: #F59E0B;
+            --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+            --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+            --radius-md: 8px;
+            --radius-lg: 12px;
+            --radius-xl: 16px;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            padding-bottom: 70px;
+            line-height: 1.6;
+        }
+
+        h1, h2, h3 { color: var(--text-main); font-weight: 700; }
+        h1 { font-size: 2.2em; text-align: center; }
+        h2 { font-size: 1.5em; border-bottom: 2px solid var(--primary-light); padding-bottom: 0.5em; margin-bottom: 1em; }
+
+        .login-wrapper {
+            display: flex; justify-content: center; align-items: center; min-height: 100vh;
+            background: linear-gradient(135deg, #fdfbfb 0%, #ebedee 100%);
+        }
+        .login-container {
+            width: 90%; max-width: 420px; background-color: var(--surface);
+            padding: 2.5em 2em; border-radius: var(--radius-xl); box-shadow: var(--shadow-lg);
+            text-align: center;
+        }
+        .login-container h2 {
+            color: var(--text-main); border: none; margin-bottom: 1em; font-size: 2em;
+        }
+        .login-container h2 i { color: var(--primary); margin-right: 10px; }
+
+        .form-group { margin-bottom: 1.5em; text-align: left; }
+        .form-group label { display: block; color: var(--text-muted); margin-bottom: 0.5em; font-weight: 500; font-size: 0.9em; }
+        .form-group input, .form-group select {
+            width: 100%; padding: 0.8em 1em; border: 1px solid var(--border-color);
+            border-radius: var(--radius-md); font-size: 1em; font-family: inherit;
+            background-color: #F9FAFB; transition: all 0.3s ease;
+        }
+        .form-group input:focus, .form-group select:focus {
+            outline: none; border-color: var(--primary); background-color: var(--surface);
+            box-shadow: 0 0 0 3px rgba(124, 58, 237, 0.2);
+        }
+
+        button {
+            padding: 0.8em 1.5em; border: none; border-radius: var(--radius-md);
+            background-color: var(--cor-primaria-inst); 
+            color: var(--primary-text);
+            font-weight: 600; font-size: 1em;
+            cursor: pointer; transition: all 0.2s ease; font-family: inherit;
+            display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+        }
+        button:hover:not(:disabled) { filter: brightness(0.9); transform: translateY(-1px); box-shadow: var(--shadow-md); }
+        button:disabled { background-color: var(--border-color); color: var(--text-muted); cursor: not-allowed; }
+        
+        .btn-danger { background-color: var(--danger); color: white; }
+        .btn-secondary { background-color: #F3F4F6; color: var(--text-main); }
+        .btn-secondary:hover:not(:disabled) { background-color: #E5E7EB; }
+
+        .container {
+            width: 95%; max-width: 1200px; margin: 30px auto; background-color: var(--surface);
+            padding: 2em; border-radius: var(--radius-xl); box-shadow: var(--shadow-lg); display: none;
+        }
+
+        .app-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 2em; flex-wrap: wrap; gap: 15px; }
+        .header-branding { display: flex; align-items: center; gap: 15px; flex: 1; }
+        .header-branding h1 { margin: 0; text-align: left; display: flex; align-items: center; gap: 10px; }
+        .header-branding h1 i { color: var(--primary); }
+        
+        #institution-branding { display: flex; align-items: center; gap: 8px; }
+        #logo-instituicao { display: none; max-height: 45px; object-fit: contain; margin-left: 10px; }
+        .powered-by { display: none; color: var(--text-muted); font-size: 0.8em; white-space: nowrap; }
+
+        .account-list { list-style: none; padding: 0; max-height: 200px; overflow-y: auto; border: 1px solid var(--border-color); border-radius: var(--radius-md); margin-bottom: 1em; }
+        .account-item { display: flex; justify-content: space-between; padding: 12px; border-bottom: 1px solid var(--border-color); cursor: pointer; }
+        .account-item:hover { background: var(--bg-color); }
+        .remove-account-btn { background: none; color: var(--danger); padding: 0; width: auto; font-size: 1.2em; }
+        .login-options { margin-top: 1.5em; }
+        .login-options button { background: none; color: #2563EB; font-weight: normal; box-shadow: none; padding: 0; }
+
+        .prova-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; }
+        .questao-card {
+            background: #FAFBFC; padding: 0; border-radius: var(--radius-lg);
+            border: 1px solid var(--border-color); margin-bottom: 1.5em; overflow: hidden;
+            border-left: 5px solid var(--primary);
+        }
+        .questao-header {
+            display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap;
+            gap: 12px; padding: 15px 20px; background: #F8FAFC; border-bottom: 1px solid var(--border-color);
+        }
+        .questao-header h3 { margin: 0; color: var(--cor-primaria-inst); }
+        .btn-move { background: none; border: none; cursor: pointer; color: var(--text-muted); transition: 0.2s; width: 32px; height: 32px; }
+        .btn-move:hover { color: var(--text-main); background: #E5E7EB; border-radius: 50%; }
+
+        .ql-toolbar { border-top-left-radius: 0; border-top-right-radius: 0; }
+        .ql-container { min-height: 150px; font-size: 16px; font-family: 'Inter', sans-serif; }
+        .badge {
+            font-size: 0.75em; font-weight: 600; padding: 4px 10px; border-radius: 20px;
+            letter-spacing: 0.5px;
+        }
+
+        /* Destaque Inclusão */
+        .secao-inclusao {
+            background: #eef2ff;
+            border: 1px solid #c7d2fe;
+            padding: 20px;
+            border-radius: var(--radius-lg);
+            margin-bottom: 20px;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Login -->
+    <div id="login-view" class="login-wrapper" style="display: flex;">
+        <div class="login-container">
+            <h2><i class="fa-solid fa-file-signature"></i>ProvIA</h2>
+            <div id="account-chooser" style="display: none;">
+                <p style="margin-bottom: 15px; color: var(--text-muted);">Selecione uma conta salva:</p>
+                <ul id="account-list" class="account-list"></ul>
+                <div class="login-options"><button onclick="showLoginForm()">Usar outra conta</button></div>
+            </div>
+            <div id="password-prompt" style="display: none;">
+                <p style="margin-bottom: 15px;">Digite a senha para:<br><strong id="prompt-email"></strong></p>
+                <div class="form-group"><input type="password" id="prompt-password" placeholder="Sua senha..." required></div>
+                <button style="width:100%" onclick="loginWithPassword()">Entrar</button>
+                <div class="login-options"><button onclick="showAccountChooser()">Voltar</button></div>
+            </div>
+            <div id="login-form" style="display: block;">
+                <p style="margin-bottom: 15px; color: var(--text-muted);">Acesse o montador de avaliações.</p>
+                <div class="form-group">
+                    <label for="sso-email">E-mail</label>
+                    <input type="email" id="sso-email" placeholder="email@escola.com" required>
+                </div>
+                <div class="form-group">
+                    <label for="password">Senha</label>
+                    <input type="password" id="password" placeholder="••••••••" required>
+                </div>
+                <button style="width:100%" onclick="loginFromForm()">Entrar</button>
+                <div class="login-options">
+                    <button id="back-to-chooser-btn" onclick="showAccountChooser()" style="display: none;">Voltar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- App Principal -->
+    <div class="container" id="provia-app">
+        <div class="app-header">
+            <div class="header-branding">
+                <h1><i class="fa-solid fa-file-signature"></i> ProvIA</h1>
+                <div id="institution-branding">
+                    <img id="logo-instituicao" src="" alt="Logo da Instituição">
+                </div>
+            </div>
+            <div id="user-info"></div>
+        </div>
+        
+        <div id="prova-creator" class="mapia-section active">
+            <h2><i class="fa-solid fa-heading"></i> Configurações da Avaliação</h2>
+            <div style="background: #fff8e1; border-left: 4px solid var(--warning); padding: 15px; border-radius: 4px; margin-bottom: 20px; font-size: 0.9em; color: var(--text-main);">
+                <i class="fas fa-info-circle"></i> O cabeçalho desta prova será montado automaticamente usando o Layout Oficial configurado pelo Gestor da sua escola.
+            </div>
+
+            <div class="prova-grid">
+                <div class="form-group"><label>Nome da Instituição</label><input id="prova-instituicao" type="text" placeholder="Nome da escola"></div>
+                <div class="form-group"><label>Tipo de Avaliação</label><input id="prova-tipo-avaliacao" type="text" value="Avaliação"></div>
+                <div class="form-group"><label>Bimestre/Trimestre</label><input id="prova-trimestre" type="text" placeholder="Ex: 1º Bimestre"></div>
+                <div class="form-group"><label>Valor Total</label><input id="prova-valor" type="text" value="10,0"></div>
+                <div class="form-group"><label>Professor(a)</label><input id="prova-professor" type="text" placeholder="Seu nome"></div>
+                <div class="form-group"><label>Componente Curricular</label><input id="prova-componente" type="text" placeholder="Ex: Matemática"></div>
+                <div class="form-group"><label>Série/Ano</label><input id="prova-serie" type="text" placeholder="Ex: 8ª Série"></div>
+                <div class="form-group"><label>Turma</label><input id="prova-turma" type="text" placeholder="Ex: A"></div>
+            </div>
+            
+            <!-- NOVA SEÇÃO: Adaptação Inclusiva e Colunas -->
+            <div class="secao-inclusao">
+                <h3 style="margin-top:0; margin-bottom: 15px; font-size: 1.2em; color: var(--primary);"><i class="fa-solid fa-universal-access"></i> Acessibilidade e Formatação</h3>
+                <div class="prova-grid">
+                    <div class="form-group" style="margin-bottom:0;">
+                        <label>Adaptação Visual (Inclusão)</label>
+                        <select id="prova-adaptacao">
+                            <option value="padrao" selected>Padrão (Sem Adaptações)</option>
+                            <option value="tdah_tea">TDAH / TEA (Caixas separadas, espaçamento ampliado)</option>
+                            <option value="dislexia">Dislexia (Fonte OpenDyslexic, espaçamento entre palavras)</option>
+                            <option value="baixa_visao">Baixa Visão (Fontes tamanho 18pt, alto contraste)</option>
+                        </select>
+                    </div>
+                    <div class="form-group" style="margin-bottom:0;">
+                        <label>Layout de Questões</label>
+                        <select id="prova-colunas">
+                            <option value="1" selected>1 Coluna (Folha Inteira)</option>
+                            <option value="2">2 Colunas (Estilo ENEM / Vestibular)</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <div class="form-group"><label>Instruções (opcional)</label><input id="prova-instrucoes" type="text"></div>
+
+            <hr style="margin: 30px 0; border: 0; border-top: 1px solid var(--border-color);">
+
+            <h2><i class="fa-solid fa-question-circle"></i> Questões da Avaliação</h2>
+            <div id="questoes-container"></div>
+            
+            <button id="add-questao-btn" class="btn-secondary" style="width: 100%; height: 50px; border-style: dashed; border-width: 2px;">
+                <i class="fa-solid fa-plus"></i> Adicionar Nova Questão
+            </button>
+            
+            <hr style="margin: 40px 0; border: 0; border-top: 1px solid var(--border-color);">
+            
+            <div class="actions-container" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 15px;">
+                <div style="display: flex; gap: 10px;">
+                    <button id="save-data-local-btn"><i class="fa-solid fa-cloud-arrow-up"></i> Salvar Rascunho</button>
+                    <button id="load-data-local-btn" class="btn-secondary"><i class="fa-solid fa-cloud-arrow-down"></i> Carregar Rascunho</button>
+                </div>
+                <button id="visualizar-prova-btn" style="font-size: 1.2em; padding: 1em 2em; box-shadow: var(--shadow-lg);"><i class="fa-solid fa-print"></i> Gerar Prova para Impressão</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Painel de Símbolos Matemáticos -->
+    <div id="math-symbols-panel" style="display: none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 320px; background: white; border: 1px solid #ccc; box-shadow: var(--shadow-lg); z-index: 10002; padding: 1rem; border-radius: var(--radius-lg);"></div>
+
+    <footer style="text-align: center; padding: 20px; color: var(--text-muted); font-size: 0.9em;">
+        ProvIA &copy; <strong style="color:var(--primary);">Systematrix</strong> | 2026
+    </footer>
+
+    <script>
+        const firebaseConfigG = {
+            apiKey: "AIzaSyB3p0DvbtoDNI0WUPrly4PdLwmsbn_jNUU",
+            authDomain: "systematrix-apps.firebaseapp.com",
+            databaseURL: "https://systematrix-apps-default-rtdb.firebaseio.com",
+            projectId: "systematrix-apps"
+        };
+        const appG = firebase.initializeApp(firebaseConfigG, "app");
+        const auth = appG.auth(); 
+        const database = appG.database();
+
+        let currentUserProfile = null;
+        let layoutProvaEscola = null;
+        const localStorageKey = "systematrixSSOAccounts_provIA";
+        let selectedAccountEmail = null;
+        let provaQuestaoEditors = {};
+
+        function getRememberedAccounts() { try { const a = localStorage.getItem(localStorageKey); return a ? JSON.parse(a) : []; } catch(e){ return []; } }
+        function saveAccount(email) { let a = getRememberedAccounts().filter(acc => acc !== email); a.unshift(email); localStorage.setItem(localStorageKey, JSON.stringify(a)); }
+        function removeAccount(email) { if(confirm(`Remover ${email}?`)){ localStorage.setItem(localStorageKey, JSON.stringify(getRememberedAccounts().filter(a=>a!==email))); loadAccountChooser(); } }
+        function loadAccountChooser() {
+            const accounts = getRememberedAccounts();
+            const chooser = document.getElementById('account-chooser'), list = document.getElementById('account-list');
+            const loginForm = document.getElementById('login-form'), prompt = document.getElementById('password-prompt');
+            list.innerHTML = '';
+            if (accounts.length > 0) {
+                accounts.forEach(email => {
+                    const li = document.createElement('li'); li.className='account-item';
+                    li.innerHTML = `<span><i class="fa-solid fa-user" style="color:var(--text-muted); margin-right:10px;"></i>${email}</span><button class="remove-account-btn" onclick="event.stopPropagation(); removeAccount('${email}')"><i class="fa-solid fa-trash"></i></button>`;
+                    li.onclick = () => handleAccountClick(email);
+                    list.appendChild(li);
+                });
+                chooser.style.display = 'block'; loginForm.style.display = 'none'; prompt.style.display = 'none';
+                document.getElementById('back-to-chooser-btn').style.display = 'block';
+            } else {
+                chooser.style.display = 'none'; loginForm.style.display = 'block';
+                document.getElementById('back-to-chooser-btn').style.display = 'none';
+            }
+        }
+        function showAccountChooser(){ document.getElementById('account-chooser').style.display='block'; document.getElementById('password-prompt').style.display='none'; document.getElementById('login-form').style.display='none';}
+        function showLoginForm(){ document.getElementById('account-chooser').style.display='none'; document.getElementById('password-prompt').style.display='none'; document.getElementById('login-form').style.display='block'; }
+        function handleAccountClick(email) { selectedAccountEmail = email; document.getElementById('account-chooser').style.display = 'none'; document.getElementById('password-prompt').style.display = 'block'; document.getElementById('prompt-email').textContent = email; document.getElementById('prompt-password').value = ''; document.getElementById('prompt-password').focus(); }
+        function performLogin(email, pass) { auth.signInWithEmailAndPassword(email, pass).then(()=>saveAccount(email)).catch(err => alert("Erro: " + err.message)); }
+        function loginFromForm(){ performLogin(document.getElementById('sso-email').value, document.getElementById('password').value); }
+        function logout() { auth.signOut(); }
+
+        auth.onAuthStateChanged(user => {
+            if (user) {
+                database.ref('usuarios_institucionais/' + user.uid).once('value')
+                .then(snap => {
+                    if (!snap.exists()) throw new Error("Perfil não encontrado.");
+                    const profile = snap.val();
+                    const hasAccess = profile.sistemasAcesso?.includes('provia');
+                    if (!hasAccess || profile.status !== "ativo") throw new Error("Você não tem acesso ao sistema ProvIA.");
+                    
+                    currentUserProfile = profile;
+                    const userInfo = document.getElementById("user-info");
+                    userInfo.innerHTML = `
+                                    <span class="badge" style="background:var(--primary-light); color:var(--primary-dark); font-size:0.9em; border:1px solid var(--primary-active);">
+                                        ${user.email}
+                                    </span>
+                                    <button class="btn-danger" style="padding:5px 10px; font-size:0.8rem;" onclick="logout()">Sair</button>
+                                `;
+                    document.getElementById('provia-app').style.display = "block";
+                    document.getElementById('login-view').style.display = "none";
+                    applyInstitutionalBranding(user.uid);
+                    initializeProvIAApp();
+                })
+                .catch(err => { alert(err.message); logout(); });
+            } else {
+                currentUserProfile = null;
+                document.getElementById('provia-app').style.display = 'none';
+                document.getElementById('login-view').style.display = 'flex';
+                loadAccountChooser();
+            }
+        });
+
+        async function applyInstitutionalBranding(uid) {
+            if (!currentUserProfile.instituicaoId) return;
+            const persRef = database.ref(`instituicoes/${currentUserProfile.instituicaoId}/personalizacao`);
+            const persSnap = await persRef.once('value');
+            if (persSnap.exists()) {
+                const p = persSnap.val();
+                if (p.corPrimaria) {
+                    document.documentElement.style.setProperty('--cor-primaria-inst', p.corPrimaria);
+                    const textColor = getContrastYIQ(p.corPrimaria);
+                    document.documentElement.style.setProperty('--primary-text', textColor);
+                }
+                if (p.logoUrl) {
+                    const logoImg = document.getElementById('logo-instituicao');
+                    logoImg.src = p.logoUrl;
+                    logoImg.style.display = 'block';
+                }
+                document.getElementById('prova-instituicao').value = p.nome || '';
+                if (p.layoutProva && p.layoutProva.length > 0) {
+                    layoutProvaEscola = p.layoutProva;
+                }
+            }
+        }
+        function getContrastYIQ(hex){ hex=hex.replace("#",""); if(hex.length===3)hex=hex.split("").map(c=>c+c).join(""); var r=parseInt(hex.substr(0,2),16),g=parseInt(hex.substr(2,2),16),b=parseInt(hex.substr(4,2),16); return(((r*299)+(g*587)+(b*114))/1000)>=128?'#000000':'#FFFFFF';}
+
+        function initializeProvIAApp() {
+            document.getElementById('add-questao-btn').addEventListener('click', adicionarNovaQuestao);
+            document.getElementById('visualizar-prova-btn').addEventListener('click', async () => {
+                const dados = await coletarDadosProva();
+                gerarHtmlProvaWindow(dados);
+            });
+            document.getElementById('save-data-local-btn').addEventListener('click', saveDataToLocalStorage);
+            document.getElementById('load-data-local-btn').addEventListener('click', loadDataFromLocalStorage);
+            document.getElementById('prova-professor').value = currentUserProfile.nome || '';
+            if (document.getElementById('questoes-container').children.length === 0) adicionarNovaQuestao();
+        }
+
+        function adicionarNovaQuestao() {
+            const container = document.getElementById('questoes-container');
+            const questaoId = 'q-' + Date.now();
+            const questaoIndex = container.children.length + 1;
+            const questaoDiv = document.createElement('div');
+            questaoDiv.className = 'questao-card';
+            questaoDiv.id = questaoId;
+            questaoDiv.innerHTML = `
+                <div class="questao-header">
+                    <h3>Questão ${questaoIndex}</h3>
+                    <div style="display: flex; gap: 12px; align-items: center; flex-wrap: wrap;">
+                        <div style="display: flex; gap: 4px;">
+                            <button class="btn-move" onclick="moveQuestao('${questaoId}', 'up')" title="Mover para cima"><i class="fas fa-arrow-up"></i></button>
+                            <button class="btn-move" onclick="moveQuestao('${questaoId}', 'down')" title="Mover para baixo"><i class="fas fa-arrow-down"></i></button>
+                        </div>
+                        <div class="form-group" style="margin: 0; min-width: 140px;">
+                            <select id="tipo-${questaoId}" class="questao-tipo-select" style="padding: 8px;">
+                                <option value="fechada" selected>Objetiva</option>
+                                <option value="aberta">Dissertativa</option>
+                            </select>
+                        </div>
+                        <div class="form-group" style="margin: 0; width: 80px;">
+                            <input type="text" id="valor-${questaoId}" value="1,0" style="padding: 8px; text-align:center;">
+                        </div>
+                        <button class="btn-danger" onclick="removerQuestao('${questaoId}')" style="padding:8px 12px;"><i class="fas fa-trash"></i></button>
+                    </div>
+                </div>
+                <div id="enunciado-editor-${questaoId}" style="background: white;"></div>`;
+            container.appendChild(questaoDiv);
+            const editor = initializeQuillEditor(`#enunciado-editor-${questaoId}`);
+            provaQuestaoEditors[questaoId] = editor;
+            atualizarNumeracaoQuestoes();
+        }
+
+        function atualizarNumeracaoQuestoes() { document.querySelectorAll('.questao-card').forEach((card, index) => { card.querySelector('h3').textContent = `Questão ${index + 1}`; }); }
+        function removerQuestao(id) { if (confirm('Tem certeza?')) { const el = document.getElementById(id); if (el) { delete provaQuestaoEditors[id]; el.remove(); atualizarNumeracaoQuestoes(); } } }
+        function moveQuestao(id, direction) {
+            const card = document.getElementById(id);
+            if (!card) return;
+            const container = document.getElementById('questoes-container');
+            if (direction === 'up' && card.previousElementSibling) container.insertBefore(card, card.previousElementSibling);
+            else if (direction === 'down' && card.nextElementSibling) container.insertBefore(card, card.nextElementSibling.nextElementSibling);
+            atualizarNumeracaoQuestoes();
+            card.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+
+        async function coletarDadosProva() {
+            const config = {
+                instituicao: document.getElementById('prova-instituicao').value,
+                tipoAvaliacao: document.getElementById('prova-tipo-avaliacao').value,
+                trimestre: document.getElementById('prova-trimestre').value,
+                valor: document.getElementById('prova-valor').value,
+                professor: document.getElementById('prova-professor').value,
+                componente: document.getElementById('prova-componente').value,
+                serie: document.getElementById('prova-serie').value,
+                turma: document.getElementById('prova-turma').value,
+                instrucoes: document.getElementById('prova-instrucoes').value,
+                adaptacao: document.getElementById('prova-adaptacao').value,
+                colunas: document.getElementById('prova-colunas').value
+            };
+            const questoes = [];
+            document.querySelectorAll('.questao-card').forEach(q => {
+                const questaoId = q.id;
+                questoes.push({
+                    tipo: document.getElementById(`tipo-${questaoId}`).value,
+                    valor: document.getElementById(`valor-${questaoId}`).value || "1,0",
+                    enunciado: provaQuestaoEditors[questaoId].root.innerHTML
+                });
+            });
+            const persSnap = await database.ref(`instituicoes/${currentUserProfile.instituicaoId}/personalizacao`).once('value');
+            return { config, questoes, logoUrl: persSnap.exists() ? persSnap.val().logoUrl : '' };
+        }
+
+        function parsePlaceholder(content, config) {
+            if(content === '[NOME_INSTITUICAO]') return config.instituicao || '';
+            if(content === '[NOME_ALUNO]') return 'Nome: _______________________________________';
+            if(content === '[DATA]') return 'Data: ___/___/20__';
+            if(content === '[NOTA]') return 'Nota: _______';
+            if(content === '[TURMA]') return `Turma: ${config.turma || '____'}`;
+            if(content === '[PROFESSOR]') return `Prof(a): ${config.professor || '____'}`;
+            if(content === '[COMPONENTE]') return `Componente: ${config.componente || '____'}`;
+            if(content === '[VALOR]') return `Valor: ${config.valor || '____'}`;
+            if(content === '[TIPO_AVALIACAO]') return `${config.tipoAvaliacao || 'Avaliação'} - ${config.trimestre || ''}`;
+            if(content === '[SERIE]') return `Série: ${config.serie || '____'}`;
+            return content;
+        }
+
+        function parsePlaceholder(content, config) {
+            // CRIAMOS UMA LINHA CSS INTELIGENTE: Ela calcula o espaço e nunca "estoura" a tabela
+            const line = (w) => `<span style="display:inline-block; border-bottom: 1px solid #000; width: ${w}; margin-left: 5px;">&nbsp;</span>`;
+
+            if(content === '[NOME_INSTITUICAO]') return config.instituicao || '';
+            if(content === '[NOME_ALUNO]') return `Nome: ${line('75%')}`;
+            if(content === '[DATA]') return `
+    Data:
+    <span style="
+        display:inline-block;
+        border-bottom:1px solid #000;
+        width:90px;
+        margin-left:5px;
+        vertical-align:middle;
+    ">&nbsp;</span>
+`;
+            if(content === '[NOTA]') return `Nota: ${line('50%')}`;
+            if(content === '[TURMA]') return `Turma: ${config.turma || line('45%')}`;
+            if(content === '[PROFESSOR]') return `Prof(a): ${config.professor || line('70%')}`;
+            if(content === '[COMPONENTE]') return `Componente: ${config.componente || line('45%')}`;
+            if(content === '[VALOR]') return `Valor: ${config.valor || line('45%')}`;
+            if(content === '[TIPO_AVALIACAO]') return `${config.tipoAvaliacao || 'Avaliação'} - ${config.trimestre || ''}`;
+            if(content === '[SERIE]') return `Série: ${config.serie || line('45%')}`;
+            return content;
+        }
+
+        function gerarHtmlProvaWindow(dados) {
+            const { config, questoes, logoUrl } = dados;
+            
+            // --- LÓGICA DE ADAPTAÇÕES CSS ---
+            let adaptacaoCSS = '';
+            if (config.adaptacao === 'tdah_tea') {
+                adaptacaoCSS = `
+                    body { font-family: 'Arial', sans-serif; line-height: 1.8; }
+                    .questao-block { border: 2px solid #ccc; padding: 15px; border-radius: 12px; margin-bottom: 25px; background: #fafbfc; page-break-inside: avoid; }
+                    .questao-enunciado { border-bottom: 1px dashed #ccc; padding-bottom: 5px; margin-bottom: 10px; font-size: 1.1em; }
+                `;
+            } else if (config.adaptacao === 'dislexia') {
+                adaptacaoCSS = `
+                    @import url('https://fonts.cdnfonts.com/css/opendyslexic');
+                    body { font-family: 'OpenDyslexic', sans-serif; line-height: 2; letter-spacing: 1px; word-spacing: 3px; }
+                    .questao-block { margin-bottom: 30px; }
+                `;
+            } else if (config.adaptacao === 'baixa_visao') {
+                adaptacaoCSS = `
+                    body { font-size: 18pt !important; line-height: 1.6; font-weight: bold; color: #000; }
+                    .ql-editor { font-size: 18pt !important; font-weight: bold; }
+                    .questao-block { margin-bottom: 40px; border-bottom: 4px solid #000; padding-bottom: 20px; }
+                `;
+            } else {
+                adaptacaoCSS = `
+                    body { font-family: Arial, sans-serif; font-size: 11pt; line-height: 1.4; }
+                    .questao-block {
+    margin-top: 0.45cm;
+    page-break-inside: avoid;
+}
+.questao-block:first-child {
+    margin-top: 0;
+}
+                    .ql-editor { font-size: 11pt; font-family: Arial, sans-serif; line-height: 1.4; }
+                `;
+            }
+
+            // --- LÓGICA DE COLUNAS CSS ---
+            let colunasCSS = '';
+            if (config.colunas === '2') {
+    colunasCSS = `
+        .questoes-container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 0.6cm;
+            align-items: start;
+            padding: 0.3cm 0.45cm;
+        }
+
+        .questao-block {
+            break-inside: avoid;
+            page-break-inside: avoid;
+            margin-top: 0 !important;
+            width: 100%;
+        }
+
+        @media print {
+            .questoes-container {
+                display: grid;
+                grid-template-columns: 1fr 1fr;
+                gap: 0.6cm;
+            }
+        }
+    `;
+}
+
+            // --- CABEÇALHO ---
+            let headerHtml = '';
+            
+            if (layoutProvaEscola && layoutProvaEscola.length > 0 && layoutProvaEscola[0].columns) {
+                headerHtml = `<div style="border: 1.5px solid #000; margin-bottom: 10px; width: 100%; box-sizing: border-box;">`;
+                
+                layoutProvaEscola.forEach((row, rowIndex) => {
+    let isLastRow = rowIndex === layoutProvaEscola.length - 1;
+    let borderBottom = isLastRow ? '' : 'border-bottom: 1px solid #000;';
+
+    headerHtml += `<table style="width:100%; border-collapse: collapse;"><tr>`;
+
+    row.columns.forEach((col, colIndex) => {
+        let isLastCol = colIndex === row.columns.length - 1;
+        let borderRight = isLastCol ? '' : 'border-right: 1px solid #000;';
+
+        let colContent = '';
+        let extraStyle = '';
+
+        if (col.type === 'image') {
+            colContent = logoUrl
+                ? `<img src="${logoUrl}" style="max-width: 100%; max-height: 1.6cm; object-fit: contain;">`
+                : '';
+
+            extraStyle = 'width: 15%; text-align: center;';
+        } else {
+            colContent = col.type === 'placeholder'
+                ? parsePlaceholder(col.content, config)
+                : col.content;
+
+            if (col.content === '[NOME_ALUNO]' || col.content === '[PROFESSOR]') {
+                extraStyle = 'width: 60%;';
+            }
+        }
+
+        let boldStyle = col.bold ? 'font-weight: bold;' : '';
+        let alignStyle = extraStyle.includes('text-align')
+            ? ''
+            : `text-align: ${col.align};`;
+
+        headerHtml += `
+            <td style="
+                padding: 3px 6px;
+                line-height: 1.1;
+                vertical-align: middle;
+                font-size: ${col.fontSize || '10px'};
+                ${boldStyle}
+                ${alignStyle}
+                ${borderRight}
+                ${borderBottom}
+                ${extraStyle}
+                white-space: normal;
+word-break: break-word;
+overflow-wrap: break-word;
+            ">
+                ${colContent}
+            </td>
+        `;
+    });
+
+    headerHtml += `</tr></table>`;
+});
+
+                headerHtml += `</div>`;
+                
+            } else {
+                const lFallback = `<span style="display:inline-block; border-bottom: 1px solid #000; width: 70%; margin-left: 5px;">&nbsp;</span>`;
+                headerHtml = `
+                    <table style="width: 100%; border-collapse: collapse; margin-bottom: 20px; border: 2px solid #000;">
+                        <tr>
+                            <td style="width: 2cm; padding: 5px; border: 1px solid black; text-align: center;">${logoUrl ? `<img src="${logoUrl}" style="max-width: 100%; height: 42px;
+width: auto;
+display: block;
+margin: auto;">` : ''}</td>
+                            <td style="text-align: center; font-weight: bold; font-size: 1.2em; border: 1px solid black;">${(config.instituicao || '').toUpperCase()}</td>
+                        </tr>
+                    </table>
+                    <table style="width: 100%; border-collapse: collapse; margin-bottom: 20px;">
+                        <tr><td style="border: 1px solid black; padding: 4px;">Avaliação: <strong>${config.tipoAvaliacao}</strong></td><td style="border: 1px solid black; padding: 4px;">Valor: <strong>${config.valor}</strong></td><td style="border: 1px solid black; padding: 4px;">Componente: <strong>${config.componente}</strong></td></tr>
+                        <tr><td style="border: 1px solid black; padding: 4px;">Série: <strong>${config.serie}</strong></td><td style="border: 1px solid black; padding: 4px;">Turma: <strong>${config.turma}</strong></td><td style="border: 1px solid black; padding: 4px;">Prof: <strong>${config.professor}</strong></td></tr>
+                    </table>
+                    <table style="width: 100%; margin-bottom: 20px;"><tr><td>NOME: ${lFallback}</td><td style="width:25%; text-align:right;">Data: ${lFallback}</td></tr></table>`;
+            }
+
+            let provaHtml = `
+            <!DOCTYPE html><html lang="pt-br"><head><title>Prova - ${config.componente}</title>
+            <link href="https://cdn.quilljs.com/1.3.6/quill.snow.css" rel="stylesheet">
+            <style>
+                body {
+    margin: 0;
+    padding: 0.45cm 0.6cm;
+}
+                .questao-enunciado { font-weight: bold; margin-bottom: 5px; }
+                .ql-snow, .ql-editor { border: none !important; }
+                .ql-editor { padding: 0 !important; }
+                ${adaptacaoCSS}
+                ${colunasCSS}
+            </style>
+            </head><body>
+            
+            ${headerHtml}
+            ${config.instrucoes ? `<div style="border: 1px solid black; padding: 10px; margin: 6px 0; font-size: 0.9em;"><strong>Instruções:</strong> ${config.instrucoes}</div>` : ''}
+            
+            <div class="questoes-container">`;
+
+            questoes.forEach((q, index) => {
+                provaHtml += `<div class="questao-block"><div class="questao-enunciado">Questão ${index + 1} (Valor ${q.valor}):</div><div class="ql-snow"><div class="ql-editor">${q.enunciado}</div></div>`;
+                if (q.tipo === 'aberta') provaHtml += `<br><div style="height: 5em; border-bottom: 1px solid #ccc;"></div>`;
+                provaHtml += '</div>';
+            });
+
+            provaHtml += `</div></body></html>`;
+            
+            const provaWindow = window.open('', '_blank');
+            provaWindow.document.write(provaHtml);
+            provaWindow.document.close();
+        }
+
+        function initializeQuillEditor(selector) {
+            const quill = new Quill(selector, {
+                modules: {
+                    toolbar: {
+                        container: [
+                            [{'header': [1, 2, 3, false]}],
+                            ['bold', 'italic', 'underline', 'strike'],
+                            ['link', 'image'],
+                            [{'align': []}],
+                            [{'list': 'ordered'}, {'list': 'bullet'}],
+                            ['clean'],
+                            ['math']
+                        ],
+                        handlers: {
+                            'math': mathSymbolHandler
+                        }
+                    }
+                },
+                theme: 'snow'
+            });
+            
+            const customBtn = document.querySelector(`${selector} .ql-math`);
+            if (customBtn) customBtn.innerHTML = 'Ω';
+            
+            quill.getModule('toolbar').addHandler('image', () => {
+                 const input = document.createElement('input');
+                 input.setAttribute('type', 'file');
+                 input.setAttribute('accept', 'image/*');
+                 input.click();
+                 input.onchange = () => {
+                     const file = input.files[0];
+                     if (file) {
+                         const reader = new FileReader();
+                         reader.onload = (e) => quill.insertEmbed(quill.getSelection(true).index, 'image', e.target.result);
+                         reader.readAsDataURL(file);
+                     }
+                 };
+            });
+            
+            return quill;
+        }
+
+        function mathSymbolHandler() {
+            const quillInstance = this.quill; 
+            const panel = document.getElementById('math-symbols-panel');
+            const symbols = ['√','∛','²','³','π','∞','∑','∫','≠','≤','≥','≈','÷','×','±','°','Δ'];
+            panel.innerHTML = `<h4>Símbolos</h4><div style="display:grid; grid-template-columns: repeat(6, 1fr); gap: 5px;">${symbols.map(s => `<div style="padding:8px; text-align:center; cursor:pointer; border:1px solid #ccc; border-radius:4px;" class="symbol-btn">${s}</div>`).join('')}</div>`;
+            panel.style.display = 'block';
+            panel.querySelectorAll('.symbol-btn').forEach(btn => {
+                btn.onclick = () => {
+                    const range = quillInstance.getSelection(true);
+                    quillInstance.insertText(range.index, btn.textContent);
+                    panel.style.display = 'none';
+                };
+            });
+            setTimeout(() => { document.body.onclick = e => { if (!panel.contains(e.target) && !e.target.matches('.ql-math')) { panel.style.display = 'none'; document.body.onclick = null; } }; }, 100);
+        }
+        
+        async function saveDataToLocalStorage() { 
+            const data = await coletarDadosProva(); 
+            localStorage.setItem('proviaData', JSON.stringify(data)); 
+            alert('Rascunho salvo!'); 
+        }
+        
+        function loadDataFromLocalStorage() { 
+            const dataStr = localStorage.getItem('proviaData'); 
+            if (dataStr) { 
+                if (confirm('Rascunho encontrado. Carregar?')) applyLoadedData(JSON.parse(dataStr)); 
+            } else {
+                alert('Nenhum rascunho salvo.'); 
+            }
+        }
+        
+        function applyLoadedData(data) {
+            const config = data.config || {};
+            const fields = ['instituicao', 'tipo-avaliacao', 'trimestre', 'valor', 'professor', 'componente', 'serie', 'turma', 'instrucoes'];
+            
+            // Restaura campos textuais
+            fields.forEach(f => { 
+                const el = document.getElementById(`prova-${f.replace('-','_')}`); 
+                if (el) el.value = config[f.replace(/-/g, '')] || ''; 
+            });
+            
+            // Restaura Adaptações Inclusivas e Colunas
+            if (config.adaptacao) document.getElementById('prova-adaptacao').value = config.adaptacao;
+            if (config.colunas) document.getElementById('prova-colunas').value = config.colunas;
+
+            document.getElementById('questoes-container').innerHTML = '';
+            provaQuestaoEditors = {};
+            const questoes = data.questoes || [];
+            
+            questoes.forEach((q, index) => {
+                const container = document.getElementById('questoes-container');
+                
+                // CORREÇÃO: Removendo os decimais gerados pelo Math.random()
+                const questaoId = 'q-' + Date.now() + '-' + Math.floor(Math.random() * 100000); 
+                
+                const questaoIndex = container.children.length + 1;
+                const questaoDiv = document.createElement('div');
+                questaoDiv.className = 'questao-card';
+                questaoDiv.id = questaoId;
+                questaoDiv.innerHTML = `
+                    <div class="questao-header">
+                        <h3>Questão ${questaoIndex}</h3>
+                        <div style="display: flex; gap: 12px; align-items: center;">
+                            <div style="display: flex; gap: 4px;">
+                                <button class="btn-move" onclick="moveQuestao('${questaoId}', 'up')"><i class="fas fa-arrow-up"></i></button>
+                                <button class="btn-move" onclick="moveQuestao('${questaoId}', 'down')"><i class="fas fa-arrow-down"></i></button>
+                            </div>
+                            <div class="form-group" style="margin:0;">
+                                <select id="tipo-${questaoId}" style="padding:8px;">
+                                    <option value="fechada">Objetiva</option>
+                                    <option value="aberta">Dissertativa</option>
+                                </select>
+                            </div>
+                            <div class="form-group" style="margin:0; width:80px;">
+                                <input type="text" id="valor-${questaoId}" value="${q.valor}" style="padding:8px; text-align:center;">
+                            </div>
+                            <button class="btn-danger" onclick="removerQuestao('${questaoId}')" style="padding:8px 12px;"><i class="fas fa-trash"></i></button>
+                        </div>
+                    </div>
+                    <div id="enunciado-editor-${questaoId}"></div>`;
+                
+                container.appendChild(questaoDiv);
+                document.getElementById(`tipo-${questaoId}`).value = q.tipo;
+                
+                // Agora o ID é limpo e o QuillJS conseguirá encontrar a div perfeitamente
+                const editor = initializeQuillEditor(`#enunciado-editor-${questaoId}`);
+                editor.root.innerHTML = q.enunciado;
+                provaQuestaoEditors[questaoId] = editor;
+            });
+            
+            atualizarNumeracaoQuestoes();
+        }
+
+        document.addEventListener('DOMContentLoaded', loadAccountChooser);
+    </script>
+</body>
+</html>

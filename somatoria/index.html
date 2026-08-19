@@ -1,0 +1,1291 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>SomatorIA - Correção Inteligente</title>
+    
+    <!-- Fontes e Ícones -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- SDKs do Firebase -->
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+
+    <style>
+        :root {
+            --primary: #4caf50;
+            --primary-dark: #367c39;
+            --primary-light: #e8f5e9;
+            --secondary: #757575;
+            --danger: #f44336;
+            --warning: #ff9800;
+            --info: #03a9f4;
+            --bg: #f3f4f6;
+            --surface: #ffffff;
+            --text-main: #1f2937;
+            --text-muted: #6b7280;
+            --border-color: #e5e7eb;
+            --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+            --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            --radius-md: 8px;
+            --radius-lg: 12px;
+            /* Co‑branding: cor que pode ser sobrescrita pela escola */
+            --primary-active: var(--cor-primaria-inst, var(--primary));
+        }
+
+        * { box-sizing: border-box; }
+        
+        body { 
+            font-family: 'Inter', sans-serif; 
+            line-height: 1.6; 
+            margin: 0; 
+            background-color: var(--bg); 
+            color: var(--text-main); 
+            -webkit-font-smoothing: antialiased; 
+            padding-bottom: 70px;
+        }
+
+        /* ==========================================
+           LOGIN (ESTRUTURA MODERNA)
+           ========================================== */
+        #login-view { display: flex; justify-content: center; align-items: center; min-height: 100vh; padding: 20px; }
+        #login-container { width: 100%; max-width: 400px; padding: 40px; background: var(--surface); box-shadow: var(--shadow-md); border-radius: var(--radius-lg); text-align: center; }
+        #login-container h2 { color: var(--text-main); margin-bottom: 20px; display: flex; align-items: center; justify-content: center; gap: 10px; font-size: 1.8rem; }
+        #login-container h2 i { color: var(--primary-active); }
+        .login-input { width: 100%; padding: 12px; margin-bottom: 15px; border: 1px solid var(--border-color); border-radius: var(--radius-md); box-sizing: border-box; background-color: #f9fafb; transition: 0.2s; font-family: inherit; font-size: 1rem; }
+        .login-input:focus { outline: none; border-color: var(--primary-active); box-shadow: 0 0 0 3px rgba(76, 175, 80, 0.2); }
+        
+        .account-list { list-style: none; padding: 0; margin: 0 0 15px 0; max-height: 200px; overflow-y: auto; border: 1px solid var(--border-color); border-radius: var(--radius-md); text-align: left; }
+        .account-item { display: flex; justify-content: space-between; align-items: center; padding: 12px 15px; border-bottom: 1px solid var(--border-color); cursor: pointer; transition: 0.2s; }
+        .account-item:last-child { border-bottom: none; }
+        .account-item:hover { background-color: var(--primary-light); }
+        .remove-account-btn { background: none; border: none; color: var(--danger); font-size: 1.2rem; cursor: pointer; }
+        
+        .login-options button { background: none; border: none; color: var(--primary-active); cursor: pointer; font-weight: 500; font-size: 0.95rem; }
+        .login-options button:hover { text-decoration: underline; }
+
+        /* ==========================================
+           BOTÕES GERAIS (agora usando --primary-active)
+           ========================================== */
+        button, .btn { padding: 10px 20px; border: none; border-radius: var(--radius-md); font-weight: 600; cursor: pointer; transition: all 0.2s ease; font-size: 0.95rem; font-family: inherit; display: inline-flex; align-items: center; justify-content: center; gap: 8px; }
+        .btn-primary { background: var(--primary-active); color: white; }
+        .btn-primary:hover:not(:disabled) { background: var(--primary-dark); transform: translateY(-1px); box-shadow: var(--shadow-sm); }
+        .btn-danger { background: var(--danger); color: white; }
+        .btn-danger:hover:not(:disabled) { background: #d32f2f; }
+        .btn-warning { background: var(--warning); color: white; }
+        .btn-warning:hover:not(:disabled) { background: #e68a00; }
+        .btn-info { background: var(--info); color: white; }
+        .btn-info:hover:not(:disabled) { background: #0288d1; }
+        .btn-secondary { background: var(--secondary); color: white; }
+        .btn-secondary:hover:not(:disabled) { background: #5e5e5e; }
+        .btn-outline { background: transparent; border: 1px solid var(--border-color); color: var(--text-muted); }
+        .btn-outline:hover:not(:disabled) { background: var(--bg); color: var(--text-main); }
+        .btn-block { width: 100%; display: block; }
+        button:disabled { opacity: 0.6; cursor: not-allowed; }
+        
+        button.recording { background-color: #ffcdd2 !important; color: #d32f2f !important; }
+
+        /* ==========================================
+           APP PRINCIPAL (LAYOUT TABS & CARDS)
+           ========================================== */
+        .container { max-width: 1400px; margin: 30px auto; padding: 0 30px; }
+        header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; }
+        header h1 { color: var(--text-main); margin: 0; font-size: 2rem; display: flex; align-items: center; gap: 12px; }
+        header h1 i { color: var(--primary-active); }
+        #logo-instituicao { height: 40px; vertical-align: middle; display: none; border-radius: 4px; }
+
+        /* Tabs (Segmented Control Style) */
+        .tab-buttons { display: flex; gap: 5px; margin-bottom: 25px; background: #e5e7eb; border-radius: var(--radius-md); padding: 5px; flex-wrap: wrap; }
+        .tab-button { background: none; border: none; padding: 10px 15px; cursor: pointer; font-size: 0.95rem; color: var(--text-muted); transition: 0.3s; font-weight: 600; flex: 1; border-radius: 6px; }
+        .tab-button:hover { color: var(--text-main); }
+        .tab-button.active { color: var(--text-main); background: var(--surface); box-shadow: var(--shadow-sm); }
+        
+        .tab-panel { display: none; animation: fadeIn 0.4s; }
+        .tab-panel.active { display: block; }
+
+        /* Cards & Forms */
+        .card { background: var(--surface); border-radius: var(--radius-lg); padding: 25px; box-shadow: var(--shadow-sm); border: 1px solid var(--border-color); margin-bottom: 20px; }
+        .card h2, .card h3 { margin-top: 0; color: var(--text-main); font-size: 1.3rem; border-bottom: 2px solid var(--primary-light); padding-bottom: 10px; margin-bottom: 20px;}
+        
+        .form-row { display: flex; gap: 20px; flex-wrap: wrap; align-items: flex-end; margin-bottom: 15px; }
+        .form-group { flex: 1; min-width: 150px; margin-bottom: 15px;}
+        label { display: block; margin-bottom: 8px; font-weight: 600; font-size: 0.85rem; color: var(--text-muted); }
+        input[type="text"], input[type="number"], input[type="file"], select { width: 100%; padding: 10px; border: 1px solid var(--border-color); border-radius: var(--radius-md); font-size: 1rem; box-sizing: border-box; background: #f9fafb; font-family: inherit; transition: 0.2s;}
+        input:focus, select:focus { outline: none; border-color: var(--primary-active); box-shadow: 0 0 0 3px rgba(76, 175, 80, 0.2); }
+
+        /* ==========================================
+           ESPECÍFICO SOMATORIA
+           ========================================== */
+        /* Grid de Notas (Scrollable Frame) */
+        #scrollable-frame-wrapper { overflow-x: auto; padding-bottom: 10px; }
+        #scrollable-frame { 
+            display: grid; grid-template-columns: repeat(6, auto); gap: 8px; 
+            min-width: max-content; align-items: center;
+        }
+        #scrollable-frame > * { display: flex; align-items: center; justify-content: center; text-align: center; font-size: 0.95rem; }
+        #scrollable-frame > label[name="header-label"] { background-color: var(--primary-active); color: white; font-weight: bold; padding: 12px; border-radius: var(--radius-md); position: sticky; top: 0; z-index: 10; }
+        #scrollable-frame > label[name="qnum-label"] { font-weight: bold; color: var(--text-muted); }
+        #scrollable-frame > label[name="valor-label"], #scrollable-frame > label[name="nota-label"] { font-weight: 600; background: #f3f4f6; padding: 8px 12px; border-radius: var(--radius-md); min-width: 60px; }
+        #scrollable-frame input[type="text"] { width: 80px; text-align: center; font-weight: 600; }
+        #scrollable-frame input:disabled { background-color: #e5e7eb; cursor: not-allowed; color: #9ca3af; }
+
+        /* Área de Resultados e Botões de Controle */
+        #result-controls { display: flex; gap: 20px; flex-wrap: wrap; margin-top: 10px; }
+        .result-textarea-container { flex: 1; min-width: 300px; }
+        textarea#result-text { width: 100%; height: 250px; padding: 15px; border: 1px solid var(--border-color); border-radius: var(--radius-md); resize: vertical; font-family: monospace; font-size: 0.9rem; background-color: #f9fafb; line-height: 1.5;}
+        
+        #button-group { display: flex; flex-direction: column; gap: 10px; min-width: 250px; }
+        #total-label { font-weight: 700; font-size: 1.4em; padding: 15px; background-color: var(--primary-light); color: var(--primary-dark); border: 1px solid var(--primary-active); border-radius: var(--radius-md); text-align: center; }
+
+        /* Listas e Badges */
+        .list-container { max-height: 300px; overflow-y: auto; padding-right: 5px; }
+        .list-item { background: #f9fafb; padding: 12px 15px; margin-bottom: 8px; border-radius: var(--radius-md); border-left: 4px solid var(--primary-light); display: flex; justify-content: space-between; align-items: center; }
+        .list-item:hover { border-left-color: var(--primary-active); background: #f3f4f6; }
+        .badge { padding: 4px 10px; border-radius: 12px; font-weight: 600; font-size: 0.85rem; }
+
+        /* Scanner */
+        #scan-camera-feed { width: 100%; max-width: 600px; height: 450px; background-color: #1f2937; margin: 0 auto 20px auto; border-radius: var(--radius-lg); overflow: hidden; position: relative; display: flex; justify-content: center; align-items: center; box-shadow: var(--shadow-md); }
+        #scan-camera-feed video { width: 100%; height: 100%; object-fit: cover; }
+        #scan-camera-feed .camera-overlay { position: absolute; inset: 0; border: 3px solid rgba(76, 175, 80, 0.6); pointer-events: none; border-radius: var(--radius-lg); }
+        #captured-image-display { width: 100%; max-width: 600px; margin: 0 auto 20px auto; border-radius: var(--radius-lg); overflow: hidden; display: none; box-shadow: var(--shadow-md); border: 2px solid var(--primary-active); }
+        #captured-image-display img { width: 100%; height: auto; display: block; }
+        
+        #template-preview-area { border: 2px dashed var(--primary-active); padding: 20px; margin-top: 20px; min-height: 200px; background-color: var(--primary-light); border-radius: var(--radius-lg); text-align: center; }
+
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+
+        @media (max-width: 768px) {
+            .container { padding: 15px; }
+            header { flex-direction: column; gap: 15px; text-align: center; }
+            #result-controls { flex-direction: column; }
+            #button-group { min-width: 100%; }
+        }
+
+        /* MANUTENÇÃO (Preservado estilo original com ajustes pontuais) */
+        #maintenance-overlay { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(17, 24, 39, 0.95); color: #fff; display: none; flex-direction: column; justify-content: center; align-items: center; z-index: 99999; text-align: center; backdrop-filter: blur(5px); }
+        .maintenance-content { background: #1f2937; padding: 40px; border-radius: var(--radius-lg); box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5); border: 1px solid #374151; max-width: 90%; width: 500px; }
+        .maintenance-timer { font-size: 3.5em; font-weight: bold; color: var(--danger); margin: 20px 0; text-shadow: 0 0 10px rgba(244, 67, 54, 0.3); }
+        #maintenance-banner { position: fixed; top: 0; left: 0; width: 100%; background-color: var(--warning); color: #000; padding: 10px 20px; z-index: 99998; display: none; justify-content: center; align-items: center; box-shadow: var(--shadow-md); font-size: 0.9em; font-weight: 600;}
+    </style>
+</head>
+<body>
+
+    <!-- ==========================================
+         VIEW DE LOGIN
+         ========================================== -->
+    <div id="login-view">
+        <div id="login-container">
+            <h2><i class="fa-solid fa-calculator"></i> SomatorIA</h2>
+            
+            <div id="account-chooser" style="display: block;">
+                <p style="color: var(--text-muted); margin-bottom: 15px;">Selecione uma conta salva</p>
+                <ul id="account-list" class="account-list"></ul>
+                <div class="login-options">
+                    <button onclick="showLoginForm()"><i class="fas fa-plus"></i> Usar outra conta</button>
+                </div>
+            </div>
+            
+            <div id="password-prompt" style="display: none;">
+                <p style="color: var(--text-muted); margin-bottom: 15px;">Digite a senha para:<br><strong id="prompt-email" style="color: var(--text-main);"></strong></p>
+                <input type="password" id="prompt-password" class="login-input" placeholder="Sua senha" required />
+                <button class="btn-primary btn-block" onclick="loginWithPassword()"><i class="fas fa-sign-in-alt"></i> Entrar</button>
+                <div class="login-options" style="margin-top: 15px;">
+                    <button onclick="showAccountChooser()">Voltar para seleção</button>
+                </div>
+            </div>
+            
+            <div id="login-form" style="display: none;">
+                <p style="color: var(--text-muted); margin-bottom: 15px;">Acesse o sistema de correção</p>
+                <input type="email" id="sso-email" class="login-input" placeholder="E-mail" required />
+                <input type="password" id="password" class="login-input" placeholder="Senha" required />
+                <button class="btn-primary btn-block" onclick="loginFromForm()"><i class="fas fa-sign-in-alt"></i> Entrar</button>
+                <div class="login-options" style="margin-top: 15px;">
+                    <button id="back-to-chooser-btn" onclick="showAccountChooser()" style="display: none;">Voltar para seleção</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ==========================================
+         APP PRINCIPAL
+         ========================================== -->
+    <div id="main-wrapper" class="container" style="display: none;">
+        <header>
+            <h1>
+                <i class="fa-solid fa-calculator"></i>
+                <!-- Logo da instituição (co‑branding) -->
+                <img id="logo-instituicao" src="" alt="Logo da Instituição">
+                SomatorIA
+            </h1>
+            <div id="user-info"></div>
+        </header>
+
+        <!-- Navegação em Abas -->
+        <div class="tab-buttons" id="main-tabs">
+            <button class="tab-button active" id="tab-btn-app" onclick="openTab('app-container')"><i class="fas fa-edit"></i> Correção Manual</button>
+            <button class="tab-button" id="tab-btn-scan" onclick="openTab('scan-and-grade-view')"><i class="fas fa-camera"></i> Scanner Automático</button>
+            <button class="tab-button" id="tab-btn-template" onclick="openTab('template-creator-view')"><i class="fas fa-cog"></i> Modelos & Gabaritos</button>
+        </div>
+
+        <!-- ABA 1: Correção Manual -->
+        <div id="app-container" class="tab-panel active">
+            <div class="card" style="display: flex; gap: 15px; flex-wrap: wrap; align-items: center; justify-content: space-between;">
+                <div style="flex: 1; min-width: 250px;">
+                    <label for="student-name">Nome do Aluno / Identificação da Turma:</label>
+                    <input type="text" id="student-name" placeholder="Ex: João da Silva - 1º Ano A" />
+                </div>
+                <button id="lock-button" class="btn-warning" onclick="toggleLock()" title="Bloquear/Desbloquear Gabarito" style="height: 45px;"><i class="fas fa-lock"></i> Bloquear Gabarito</button>
+            </div>
+
+            <div class="card">
+                <div id="scrollable-frame-wrapper">
+                    <div id="scrollable-frame"></div>
+                </div>
+            </div>
+
+            <div class="card" id="result-controls">
+                <div class="result-textarea-container">
+                    <label for="result-text"><i class="fas fa-file-alt"></i> Relatório Detalhado:</label>
+                    <textarea id="result-text" placeholder="O relatório detalhado das notas por questão e o total aparecerão aqui após gerar..."></textarea>
+                </div>
+                <div id="button-group">
+                    <div id="total-label">TOTAL: 0.0</div>
+                    <button id="calc-button" class="btn-primary" onclick="calculateGrades()"><i class="fas fa-calculator"></i> Calcular Total & Relatório</button>
+                    <hr style="width: 100%; border: 0; border-top: 1px solid var(--border-color); margin: 5px 0;">
+                    <button id="start-voice-gabarito" class="btn-info" onclick="startVoiceTyping('gabarito')"><i class="fas fa-microphone"></i> Ditar Gabarito</button>
+                    <button id="start-voice-resposta" class="btn-info" onclick="startVoiceTyping('resposta')"><i class="fas fa-microphone"></i> Ditar Respostas</button>
+                    <hr style="width: 100%; border: 0; border-top: 1px solid var(--border-color); margin: 5px 0;">
+                    <button id="clean-resp-button" class="btn-secondary" onclick="cleanResponses()"><i class="fas fa-eraser"></i> Limpar Respostas</button>
+                    <button id="clean-gabarito-button" class="btn-secondary" onclick="cleanGabarito()"><i class="fas fa-eraser"></i> Limpar Gabarito</button>
+                    <button id="clean-all-button" class="btn-danger" onclick="cleanAll()"><i class="fas fa-trash"></i> Limpar Tudo</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- ABA 2: Scanner e Correção -->
+        <div id="scan-and-grade-view" class="tab-panel">
+            <div class="card">
+                <h2>Corrigir por Scanner</h2>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="template-selector-scan">Modelo de Gabarito:</label>
+                        <select id="template-selector-scan"></select>
+                    </div>
+                    <div class="form-group" style="flex: 2;">
+                        <label for="gabarito-master">Gabarito Oficial (somatórias separadas por vírgula):</label>
+                        <input type="text" id="gabarito-master" placeholder="Ex: 09, 12, 04, 31, 16" />
+                    </div>
+                </div>
+            </div>
+
+            <div class="card" style="text-align: center;">
+                <div id="scan-camera-feed">
+                    <video id="camera-video" autoplay playsinline muted></video>
+                    <div class="camera-overlay"></div>
+                </div>
+                <div id="captured-image-display">
+                    <img id="processed-image" alt="Captured Image" />
+                </div>
+                
+                <div style="display: flex; gap: 15px; justify-content: center; flex-wrap: wrap;">
+                    <button id="start-camera-btn" class="btn-primary" onclick="startCameraScan()"><i class="fas fa-video"></i> Iniciar Câmera</button>
+                    <button id="capture-photo-btn" class="btn-info" onclick="capturePhotoScan()" style="display: none;"><i class="fas fa-camera"></i> Tirar Foto</button>
+                    <button id="retake-photo-btn" class="btn-secondary" onclick="retakePhotoScan()" style="display: none;"><i class="fas fa-redo"></i> Retirar Foto</button>
+                    <button id="process-scan-btn" class="btn-primary" onclick="processScanImage()" style="display: none;"><i class="fas fa-magic"></i> Processar e Corrigir</button>
+                </div>
+            </div>
+
+            <!-- Área de Resultados do Scanner -->
+            <div class="card" id="scan-results-area" style="display: none;">
+                <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; margin-bottom: 15px;">
+                    <h3 style="margin: 0; border: none; padding: 0;">Resultados da Correção</h3>
+                    <div style="background: var(--primary-light); color: var(--primary-dark); padding: 5px 15px; border-radius: 20px; font-weight: bold; border: 1px solid var(--primary-active);">
+                        Próxima Prova: <span id="scan-sequence-number">#1</span>
+                        <button class="btn-warning" onclick="resetScanSequence()" style="padding: 2px 8px; font-size: 0.8em; margin-left: 10px;">Zerar</button>
+                    </div>
+                </div>
+                
+                <p id="scan-result-summary" style="font-weight: 500; font-size: 1.1em; color: var(--primary-active);">Nenhuma correção realizada.</p>
+                <textarea id="scan-result-report" rows="10" readonly style="width: 100%; padding: 15px; margin-top: 15px; font-family: monospace; border: 1px solid var(--border-color); border-radius: var(--radius-md); background: #f9fafb;"></textarea>
+                
+                <div style="display: flex; gap: 10px; justify-content: flex-end; margin-top: 15px;">
+                    <button onclick="printStudentReport()" id="btn-print-report" class="btn-info" style="display:none;"><i class="fas fa-print"></i> Imprimir Recibo</button>
+                    <button onclick="finishCurrentScan()" id="btn-next-scan" class="btn-primary" style="display:none;"><i class="fas fa-arrow-right"></i> Próxima Prova</button>
+                </div>
+            </div>
+
+            <!-- Entrada Manual (Soma Manual) -->
+            <div class="card" id="manual-entry-area" style="display:none; border-top: 4px solid var(--primary-active);">
+                <h3>✍️ Entrada Manual das Respostas</h3>
+                <p style="color:var(--text-muted);">Analise a foto capturada e digite as respostas. Use voz ou teclado.</p>
+                <div id="manual-inputs-container" style="display:grid; grid-template-columns: repeat(auto-fill, minmax(130px,1fr)); gap:15px; margin-top:20px;"></div>
+                <div style="margin-top:20px; text-align: right;">
+                    <button class="btn-primary" onclick="calculateManualScanGrades()"><i class="fas fa-check"></i> Calcular Notas Manuais</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- ABA 3: Modelos & Gabaritos -->
+        <div id="template-creator-view" class="tab-panel">
+            <div class="card">
+                <h2>Criar Novo Modelo</h2>
+                <div class="form-row">
+                    <div class="form-group" style="flex: 2;">
+                        <label for="template-institution">Instituição / Escola (Opcional):</label>
+                        <input type="text" id="template-institution" placeholder="Ex: Colégio XYZ" />
+                    </div>
+                    <div class="form-group" style="flex: 1;">
+                        <label for="template-logo">Logotipo (Opcional):</label>
+                        <input type="file" id="template-logo" accept="image/*" onchange="previewLogo(event)" style="padding: 7px;"/>
+                    </div>
+                </div>
+                <img id="logo-preview" style="display:none; max-height: 60px; margin-bottom: 15px; border:1px solid #ccc; border-radius: 4px;" />
+
+                <div class="form-row">
+                    <div class="form-group" style="flex: 2;">
+                        <label for="template-name">Nome da Prova / Modelo:</label>
+                        <input type="text" id="template-name" placeholder="Ex: Prova de Matemática - 30 Questões" />
+                    </div>
+                    <div class="form-group">
+                        <label for="num-questions-template">Nº de Questões (Máx 60):</label>
+                        <input type="number" id="num-questions-template" value="40" min="1" max="60" />
+                    </div>
+                    <div class="form-group">
+                        <label for="default-question-value">Valor por Questão:</label>
+                        <input type="number" id="default-question-value" value="6.0" step="0.1" min="0.1" />
+                    </div>
+                </div>
+
+                <div class="form-group" style="background:#f8f9fa; padding:20px; border-radius:8px; border:1px solid var(--border-color);">
+                    <label style="font-size: 1.1em; color: var(--text-main);">Modo de Resposta do Aluno:</label>
+                    <div style="display:flex; gap:30px; flex-wrap:wrap; margin-top: 10px;">
+                        <label style="display:flex; align-items:flex-start; gap:10px; cursor:pointer;">
+                            <input type="radio" name="answer-mode" id="mode-bubbles" value="bubbles" checked onchange="updateModeUI()" style="margin-top:4px; transform: scale(1.2);">
+                            <span>
+                                <strong>🪷 Bolhas Individuais</strong><br>
+                                <span style="color:var(--text-muted); font-size:0.9em;">Aluno pinta cada bolinha. A IA soma.</span>
+                            </span>
+                        </label>
+                        <label style="display:flex; align-items:flex-start; gap:10px; cursor:pointer;">
+                            <input type="radio" name="answer-mode" id="mode-manual" value="manual" onchange="updateModeUI()" style="margin-top:4px; transform: scale(1.2);">
+                            <span>
+                                <strong>✍️ Soma Manual</strong><br>
+                                <span style="color:var(--text-muted); font-size:0.9em;">Aluno calcula e escreve o número no quadrinho.</span>
+                            </span>
+                        </label>
+                    </div>
+                </div>
+
+                <div id="alternatives-section" class="form-group" style="margin-top: 20px;">
+                    <label>Alternativas presentes no gabarito:</label>
+                    <div id="alternatives-selector" style="display:flex; flex-wrap:wrap; gap:15px; margin-top: 10px;">
+                        <label style="display:flex;align-items:center;gap:5px;cursor:pointer;"><input type="checkbox" id="alt-1" value="1" checked> <span class="badge" style="background:#e5e7eb;">01</span></label>
+                        <label style="display:flex;align-items:center;gap:5px;cursor:pointer;"><input type="checkbox" id="alt-2" value="2" checked> <span class="badge" style="background:#e5e7eb;">02</span></label>
+                        <label style="display:flex;align-items:center;gap:5px;cursor:pointer;"><input type="checkbox" id="alt-4" value="4" checked> <span class="badge" style="background:#e5e7eb;">04</span></label>
+                        <label style="display:flex;align-items:center;gap:5px;cursor:pointer;"><input type="checkbox" id="alt-8" value="8" checked> <span class="badge" style="background:#e5e7eb;">08</span></label>
+                        <label style="display:flex;align-items:center;gap:5px;cursor:pointer;"><input type="checkbox" id="alt-16" value="16" checked> <span class="badge" style="background:#e5e7eb;">16</span></label>
+                        <label style="display:flex;align-items:center;gap:5px;cursor:pointer;"><input type="checkbox" id="alt-32" value="32" checked> <span class="badge" style="background:#e5e7eb;">32</span></label>
+                    </div>
+                    
+                    <div id="alt-summary-v7" style="margin-top:15px; padding:15px; background:var(--primary-light); border-left:4px solid var(--primary-active); border-radius:4px; color:var(--primary-dark);">
+                        <i class="fas fa-info-circle"></i> <span id="manual-sum-dynamic-label">Soma Máxima: 63 | Dezenas: 0 a 6</span>
+                    </div>
+                </div>
+
+                <div style="text-align: right; margin-top: 20px;">
+                    <button class="btn-primary" onclick="saveCustomTemplate()"><i class="fas fa-save"></i> Salvar Modelo</button>
+                </div>
+            </div>
+
+            <div class="card">
+                <h3>Modelos Salvos</h3>
+                <ul id="saved-templates-list" class="list-container" style="max-height: none; padding: 0; border: none;"></ul>
+                
+                <div style="margin-top: 20px;">
+                    <button class="btn-info" onclick="printSelectedTemplate()"><i class="fas fa-print"></i> Imprimir Modelo Selecionado</button>
+                </div>
+
+                <div id="template-preview-area">
+                    <h4 style="color: var(--primary-dark); margin-top:0;">Prévia do Gabarito:</h4>
+                    <p style="color: var(--text-muted);">Selecione ou crie um modelo para ver a prévia.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- OVERLAYS E FOOTER MANTIDOS INTACTOS MAS COM CORES CORRIGIDAS -->
+    <div id="maintenance-overlay">
+        <div class="maintenance-content">
+            <div id="maintenance-warning-phase" style="display: none;">
+                <h2 style="color: var(--warning); margin-top:0;"><i class="fas fa-exclamation-triangle"></i> Alerta de Manutenção</h2>
+                <p>O sistema entrará em manutenção em breve. Você tem o tempo abaixo para salvar seus dados.</p>
+                <div id="maintenance-initial-timer" class="maintenance-timer">1:30</div>
+            </div>
+            <div id="maintenance-countdown-phase" style="display: none;">
+                <h2 style="color: var(--warning); margin-top:0;">Manutenção Iminente</h2>
+                <p id="maintenance-countdown-message">Notificação de tempo restante. Período <span id="maintenance-period-counter">1</span> de 3.</p>
+                <div id="maintenance-countdown-timer" class="maintenance-timer">5:00</div>
+                <button id="maintenance-ready-btn" class="btn-primary">Estou Pronto</button>
+            </div>
+            <div id="maintenance-locked-phase" style="display: none;">
+                <h1 style="color: var(--danger); margin-top:0;"><i class="fas fa-lock"></i> Em Manutenção</h1>
+                <p>O sistema está temporariamente indisponível. Por favor, volte mais tarde.</p>
+            </div>
+        </div>
+    </div>
+    
+    <div id="maintenance-banner">
+        <span id="maintenance-banner-message"><strong>Alerta:</strong> Manutenção programada. Salve seu trabalho. Tempo restante:</span>
+        <span id="maintenance-banner-timer" style="background: rgba(0,0,0,0.1); padding: 2px 8px; border-radius: 4px; margin: 0 10px; font-weight: bold;">1:00</span>
+        <button id="maintenance-banner-ready-btn" class="btn-danger" style="padding: 4px 10px; font-size: 0.85em;">Entrar Agora</button>
+    </div>
+
+    <!-- Rodapé com identidade Systematrix (sempre visível) -->
+    <footer style="text-align: center; padding: 20px; color: var(--text-muted); font-size: 0.9em;">
+        SomatorIA &copy; <span style="color: var(--sys-primary); font-weight: 600;">Systematrix</span> | 2026
+    </footer>
+
+    <!-- ==========================================
+         SCRIPT COMPLETO DO SOMATORIA (COM CO‑BRANDING)
+         ========================================== -->
+    <script>
+        // ==========================================
+        // 1. CONFIGURAÇÃO FIREBASE
+        // ==========================================
+        const firebaseConfig = {
+            apiKey: "AIzaSyB3p0DvbtoDNI0WUPrly4PdLwmsbn_jNUU",
+            authDomain: "systematrix-apps.firebaseapp.com",
+            databaseURL: "https://systematrix-apps-default-rtdb.firebaseio.com",
+            projectId: "systematrix-apps",
+            storageBucket: "systematrix-apps.firebasestorage.app",
+            messagingSenderId: "932627354123",
+            appId: "1:932627354123:web:f310c9babd17db8ac26d0e",
+            measurementId: "G-LF6FC7BDB6"
+        };
+        const app = firebase.initializeApp(firebaseConfig, "app");
+        const auth = app.auth(); const database = app.database();
+
+        const localStorageKey = "systematrixSSOAccounts_somatoria";
+        let selectedAccountEmail = null; let isLocked = false;
+        const VALOR_QUESTAO_PADRAO = 6.0; const NUM_QUESTOES = 40;
+        let textInputs = []; let recognition; let scanSequenceNumber = 1;
+        let currentVoiceTarget = null; let currentVoiceInputIndex = 0; var speechText;
+        let isSomatoriaInitialized = false; let currentUserProfile = null;
+        let maintenanceListener = null; let maintenanceInterval = null; let maintenanceSequenceStarted = false;
+
+        let currentTemplate = { name: "Padrão (40 Questões)", numQuestions: 40, defaultValue: VALOR_QUESTAO_PADRAO };
+        let currentScanTemplate = null;
+        let videoStream = null; let capturedCanvas = null;
+        let base64LogoToSave = null;
+
+        // ==========================================
+        // 2. FUNÇÕES AUXILIARES
+        // ==========================================
+        async function logActionToRTDB(system, action, userId) {
+            if (!currentUserProfile || !currentUserProfile.schoolId) return;
+
+const snap = await database
+  .ref(`admins_por_instituicao/${currentUserProfile.schoolId}`)
+  .once('value');
+const adminsObj = snap.val();
+const adminUIDs = Object.keys(adminsObj);
+
+            database.ref(`logs_atividades/${currentUserProfile.schoolId}/`).push({
+          acao: `Ação no ${system}`,
+          detalhe: action,
+          autorUid: adminUIDs[0],
+          professorUid: auth.currentUser.uid,
+          timestamp: { ".sv": "timestamp" }
+        });
+        }
+
+        function openTab(tabId) {
+            document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+            document.querySelectorAll('.tab-button').forEach(b => b.classList.remove('active'));
+            document.getElementById(tabId).classList.add('active');
+            
+            if(tabId === 'app-container') {
+                document.getElementById('tab-btn-app').classList.add('active');
+            } else if (tabId === 'scan-and-grade-view') {
+                document.getElementById('tab-btn-scan').classList.add('active');
+                loadTemplatesForScanner();
+                stopCameraScan();
+            } else if (tabId === 'template-creator-view') {
+                document.getElementById('tab-btn-template').classList.add('active');
+                loadSavedTemplates();
+            }
+        }
+
+        // ==========================================
+        // 3. GERENCIAMENTO DE CONTAS (SSO)
+        // ==========================================
+        function getRememberedAccounts() { try { const stored = localStorage.getItem(localStorageKey); const accs = stored ? JSON.parse(stored) : []; return Array.isArray(accs) ? accs : []; } catch (e) { return []; } }
+        function saveAccount(email) { let accs = getRememberedAccounts().filter(a => a !== email); accs.unshift(email); localStorage.setItem(localStorageKey, JSON.stringify(accs)); }
+        function removeAccount(email) { if(!confirm(`Remover conta ${email}?`)) return; localStorage.setItem(localStorageKey, JSON.stringify(getRememberedAccounts().filter(a => a !== email))); loadAccountChooser(); }
+        
+        function loadAccountChooser() {
+            const accs = getRememberedAccounts(), listUl = document.getElementById("account-list");
+            listUl.innerHTML = ""; document.getElementById("password-prompt").style.display = "none";
+            if (accs.length > 0) {
+                accs.forEach(email => {
+                    const li = document.createElement("li"); li.className = "account-item";
+                    li.innerHTML = `<span class="account-email">${email}</span> <button class="remove-account-btn" onclick="event.stopPropagation(); removeAccount('${email}')">&times;</button>`;
+                    li.onclick = () => handleAccountClick(email);
+                    listUl.appendChild(li);
+                });
+                document.getElementById("account-chooser").style.display = "block"; document.getElementById("login-form").style.display = "none";
+                const backBtn = document.getElementById("back-to-chooser-btn"); if(backBtn) backBtn.style.display = "inline-block";
+            } else {
+                document.getElementById("account-chooser").style.display = "none"; document.getElementById("login-form").style.display = "block";
+                const backBtn = document.getElementById("back-to-chooser-btn"); if(backBtn) backBtn.style.display = "none";
+            }
+        }
+
+        function showAccountChooser() { document.getElementById("account-chooser").style.display = "block"; document.getElementById("password-prompt").style.display = "none"; document.getElementById("login-form").style.display = "none"; }
+        function showLoginForm() { document.getElementById("account-chooser").style.display = "none"; document.getElementById("password-prompt").style.display = "none"; document.getElementById("login-form").style.display = "block"; }
+        function handleAccountClick(email) { selectedAccountEmail = email; document.getElementById("account-chooser").style.display = "none"; document.getElementById("login-form").style.display = "none"; document.getElementById("password-prompt").style.display = "block"; document.getElementById("prompt-email").textContent = email; document.getElementById("prompt-password").value = ""; document.getElementById("prompt-password").focus(); }
+        
+        function performLogin(email, password) { auth.signInWithEmailAndPassword(email, password).then(() => saveAccount(email)).catch(err => alert(`Erro: ${err.message}`)); }
+        function loginFromForm() { const e = document.getElementById("sso-email").value.trim(), p = document.getElementById("password").value; if (!e || !p) return alert("Preencha email e senha."); performLogin(e, p); }
+        function loginWithPassword() { const p = document.getElementById("prompt-password").value; if (!p) return alert("Digite a senha."); performLogin(selectedAccountEmail, p); }
+        function logout() { auth.signOut(); }
+
+
+function getContrastYIQ(hexcolor) {
+            hexcolor = hexcolor.replace("#","");
+            if (hexcolor.length === 3) hexcolor = hexcolor.split("").map(c=>c+c).join("");
+            var r = parseInt(hexcolor.substr(0,2),16), g = parseInt(hexcolor.substr(2,2),16), b = parseInt(hexcolor.substr(4,2),16);
+            var yiq = ((r*299)+(g*587)+(b*114))/1000;
+            return (yiq >= 128) ? '#000000' : '#FFFFFF';
+        }
+
+        // ==========================================
+        // 4. AUTENTICAÇÃO + CO‑BRANDING INSTITUCIONAL
+        // ==========================================
+        auth.onAuthStateChanged(user => {
+            const loginView = document.getElementById("login-view");
+            const mainWrapper = document.getElementById("main-wrapper");
+            const userInfo = document.getElementById("user-info");
+
+            if (user) {
+                // Tenta carregar perfil institucional primeiro
+                database.ref('usuarios_institucionais/' + user.uid).once('value')
+                    .then(snapshot => {
+                        if (snapshot.exists() && snapshot.val().sistemasAcesso && snapshot.val().sistemasAcesso.includes('somatoria')) {
+                            if (snapshot.val().status !== "ativo") { alert('Sem acesso ao SomatorIA.'); logout(); return; }
+                            const instData = snapshot.val();
+                            const instituicaoId = instData.instituicaoId;
+                            if (instituicaoId) {
+                                currentUserProfile = {
+                                    email: user.email,
+                                    schoolId: instituicaoId,
+                                    institutional: true
+                                };
+
+                                // Busca personalização da instituição
+                                database.ref('instituicoes/' + instituicaoId + '/personalizacao').once('value')
+                                    .then(persSnapshot => {
+                                        if (persSnapshot.exists()) {
+                                            const pers = persSnapshot.val();
+                                            if (pers.corPrimaria) {
+                                                document.documentElement.style.setProperty('--cor-primaria-inst', pers.corPrimaria);
+                                                const textColor = getContrastYIQ(pers.corPrimaria);
+                                document.documentElement.style.setProperty('--primary-text', textColor);
+                                            }
+                                            if (pers.logoUrl) {
+                                                const logoImg = document.getElementById('logo-instituicao');
+                                                if (logoImg) {
+                                                    logoImg.src = pers.logoUrl;
+                                                    logoImg.style.display = 'inline';
+                                                }
+                                            }
+                                        }
+                                        // Acesso liberado para institucional
+                                        loginView.style.display = "none";
+                                        mainWrapper.style.display = "block";
+                                        userInfo.innerHTML = `<span class="badge" style="background:var(--primary-light); color:var(--primary-dark); font-size:0.9em; border:1px solid var(--primary-active);">${user.email}</span> <button class="btn-danger" style="padding:5px 10px; font-size:0.8rem;" onclick="logout()">Sair</button>`;
+                                        
+                                        if (!isSomatoriaInitialized) { initializeSomatoriaApp(); isSomatoriaInitialized = true; }
+                                        openTab('app-container');
+                                        listenForMaintenance();
+                                    })
+                                    .catch(err => {
+                                        console.error("Erro ao carregar personalização:", err);
+                                        loginView.style.display = "none";
+                                        mainWrapper.style.display = "block";
+                                        userInfo.innerHTML = `<span class="badge" style="background:var(--primary-light); color:var(--primary-dark); font-size:0.9em;">${user.email}</span> <button class="btn-danger" style="padding:5px 10px; font-size:0.8rem;" onclick="logout()">Sair</button>`;
+                                        if (!isSomatoriaInitialized) { initializeSomatoriaApp(); isSomatoriaInitialized = true; }
+                                        openTab('app-container');
+                                        listenForMaintenance();
+                                    });
+                            } else {
+                                // Nó existe mas sem instituicaoId, trata como não institucional
+                                handleLegacyUser(user);
+                            }
+                        } else if (!snapshot.exists() || !snapshot.val().sistemasAcesso || !snapshot.val().sistemasAcesso.includes('somatoria')) {
+                            alert('Sem acesso ao SomatorIA.'); logout(); return;
+                        } else {
+                            // Não está em usuarios_institucionais, tenta o caminho antigo
+                            handleLegacyUser(user);
+                        }
+                    })
+                    .catch(err => {
+                        console.error("Erro ao verificar usuário institucional:", err);
+                        handleLegacyUser(user);
+                    });
+            } else {
+                // Logout
+                currentUserProfile = null;
+                isSomatoriaInitialized = false;
+                mainWrapper.style.display = "none";
+                loginView.style.display = "flex";
+                loadAccountChooser();
+                // Reseta co‑branding
+                document.documentElement.style.removeProperty('--cor-primaria-inst');
+                const logoImg = document.getElementById('logo-instituicao');
+                if (logoImg) {
+                    logoImg.src = '';
+                    logoImg.style.display = 'none';
+                }
+                if (recognition) recognition.stop();
+                deactivateFullMaintenanceMode();
+            }
+        });
+
+        function handleLegacyUser(user) {
+            const loginView = document.getElementById("login-view");
+            const mainWrapper = document.getElementById("main-wrapper");
+            const userInfo = document.getElementById("user-info");
+
+            database.ref('users/' + user.uid).once('value').then(snap => {
+                if (snap.exists() && snap.val().acquiredSystems && snap.val().acquiredSystems.includes('SomatorIA')) {
+                    currentUserProfile = snap.val();
+                    currentUserProfile.uid = user.uid;
+                    loginView.style.display = "none";
+                    mainWrapper.style.display = "block";
+                    userInfo.innerHTML = `<span class="badge" style="background:var(--primary-light); color:var(--primary-dark); font-size:0.9em; border:1px solid var(--primary-active);">${user.email}</span> <button class="btn-danger" style="padding:5px 10px; font-size:0.8rem;" onclick="logout()">Sair</button>`;
+                    
+                    if (!isSomatoriaInitialized) { initializeSomatoriaApp(); isSomatoriaInitialized = true; }
+                    openTab('app-container');
+                    listenForMaintenance();
+                } else {
+                    alert('Sem acesso ao SomatorIA.');
+                    logout();
+                }
+            }).catch(err => {
+                console.error("Erro ao buscar perfil legacy:", err);
+                alert('Erro ao carregar perfil.');
+                logout();
+            });
+        }
+
+        // ==========================================
+        // 5. INICIALIZAÇÃO DO SISTEMA
+        // ==========================================
+        function initializeSomatoriaApp() {
+            initializeGrid();
+            toggleLock(false);
+            if (!('webkitSpeechRecognition' in window)) {
+                document.getElementById("start-voice-gabarito").disabled = true;
+                document.getElementById("start-voice-resposta").disabled = true;
+            }
+        }
+
+        function toggleLock(forceState = null) {
+            isLocked = forceState !== null ? forceState : !isLocked;
+            document.querySelectorAll("#scrollable-frame input[name='gabarito']").forEach(input => input.disabled = isLocked);
+            const lb = document.getElementById("lock-button");
+            if (lb) {
+                lb.innerHTML = isLocked ? '<i class="fas fa-lock-open"></i> Desbloquear Gabarito' : '<i class="fas fa-lock"></i> Bloquear Gabarito';
+                lb.className = isLocked ? "btn-primary" : "btn-warning";
+            }
+        }
+
+        function createGridInput(type, name, placeholder = "", value = "", disabled = false) {
+            const input = document.createElement("input");
+            input.type = type; input.name = name; input.placeholder = placeholder; input.value = value; input.disabled = disabled;
+            if (name === "resposta" || name === "gabarito") {
+                input.addEventListener("input", (e) => {
+                    const all = Array.from(document.querySelectorAll(`#scrollable-frame input[name='${name}']`));
+                    updateSingleGrade(all.indexOf(e.target));
+                });
+            }
+            return input;
+        }
+
+        function createGridLabel(text, nameAttr) {
+            const label = document.createElement("label");
+            label.textContent = text;
+            label.setAttribute("name", nameAttr);
+            return label;
+        }
+
+        function initializeGrid(template = null) {
+            const gridContainer = document.getElementById("scrollable-frame");
+            gridContainer.innerHTML = "";
+            textInputs = [];
+            const numQ = template ? template.numQuestions : NUM_QUESTOES;
+            const defaultVal = template ? template.defaultValue : VALOR_QUESTAO_PADRAO;
+            ["Questão", "Gabarito", "Valor", "Questão", "Resposta", "Nota Final"].forEach(h => gridContainer.appendChild(createGridLabel(h, "header-label")));
+            for (let i = 1; i <= numQ; i++) {
+                const qNum1 = createGridLabel(i.toString(), "qnum-label");
+                const gEntry = createGridInput("text", "gabarito", "G" + i, "", isLocked);
+                const vLabel = createGridLabel(defaultVal.toFixed(1), "valor-label");
+                const qNum2 = createGridLabel(i.toString(), "qnum-label");
+                const rEntry = createGridInput("text", "resposta", "R" + i);
+                const nLabel = createGridLabel("0.0", "nota-label");
+                gridContainer.append(qNum1, gEntry, vLabel, qNum2, rEntry, nLabel);
+                textInputs.push([rEntry, nLabel, gEntry, vLabel]);
+            }
+            document.getElementById("total-label").textContent = `TOTAL: 0.0`;
+        }
+
+        function updateSingleGrade(index) {
+            if (index < 0 || index >= textInputs.length) return;
+            const [rEntry, nLabel, gEntry, vLabel] = textInputs[index];
+            nLabel.textContent = calculateGrade(rEntry.value, gEntry.value, parseFloat(vLabel.textContent) || VALOR_QUESTAO_PADRAO).toFixed(1);
+            updateTotal();
+        }
+
+        function updateTotal() {
+            document.getElementById("total-label").textContent = `TOTAL: ${textInputs.reduce((acc, [, n]) => acc + (parseFloat(n.textContent) || 0), 0).toFixed(1)}`;
+        }
+
+        async function calculateGrades() {
+    const sName = document.getElementById("student-name").value.trim() || "Não Identificado";
+    const btn = document.getElementById("calc-button");
+    
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Calculando...';
+    btn.disabled = true;
+
+    // Extrai os dados da tela
+    let respostas = [], gabaritos = [], valores = [];
+    textInputs.forEach(([rE, nL, gE, vL]) => {
+        respostas.push(rE.value.trim() || "0");
+        gabaritos.push(gE.value.trim() || "0");
+        valores.push(parseFloat(vL.textContent) || VALOR_QUESTAO_PADRAO);
+    });
+
+    try {
+        const payload = {
+            auth: auth.currentUser ? { uid: auth.currentUser.uid } : {},
+            respostas: respostas,
+            gabaritos: gabaritos,
+            valores: valores
+        };
+
+        const response = await fetch('https://systematrix.pythonanywhere.com/somatoria/calcular', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+        });
+
+        const data = await response.json();
+        if (!data.sucesso) throw new Error(data.mensagem);
+
+        // Monta o Relatório com os dados que voltaram do Backend
+        let report = `Relatório de Notas - Somatório\nAluno/Turma: ${sName}\nData: ${new Date().toLocaleString("pt-BR")}\n\n==================================================\n| Questão | Gabarito | Resposta | Nota Obtida |\n|---------|----------|----------|-------------|\n`;
+        
+        textInputs.forEach(([rE, nL, gE, vL], i) => {
+            const nota = data.notas[i];
+            nL.textContent = nota.toFixed(1); // Atualiza na tela
+            report += `| ${String(i + 1).padEnd(7)} | ${(gE.value.trim() || "-").padEnd(8)} | ${(rE.value.trim() || "-").padEnd(8)} | ${nota.toFixed(1).padEnd(11)} |\n`;
+        });
+
+        report += `==================================================\nNOTA FINAL TOTAL: ${data.total.toFixed(1)}\n`;
+        
+        document.getElementById("result-text").value = report;
+        document.getElementById("total-label").textContent = `TOTAL: ${data.total.toFixed(1)}`;
+        
+        if (auth.currentUser) logActionToRTDB('SomatorIA', `relatório gerado para ${sName}`, auth.currentUser.uid);
+        alert("Relatório gerado!");
+
+    } catch (error) {
+        alert("Erro na correção: " + error.message);
+    } finally {
+        btn.innerHTML = '<i class="fas fa-calculator"></i> Calcular Total & Relatório';
+        btn.disabled = false;
+    }
+}
+
+        function cleanResponses() { if (!confirm("Limpar respostas?")) return; textInputs.forEach(([r, n]) => { r.value = ""; n.textContent = "0.0"; }); updateTotal(); document.getElementById("result-text").value = ""; }
+        function cleanGabarito() { if (isLocked) return alert("Desbloqueie o gabarito."); if (!confirm("Limpar gabarito?")) return; textInputs.forEach(([, , g], i) => { g.value = ""; updateSingleGrade(i); }); document.getElementById("result-text").value = ""; }
+        function cleanAll() { if (isLocked) return alert("Desbloqueie o gabarito."); if (!confirm("Limpar TUDO?")) return; textInputs.forEach(([r, n, g]) => { r.value = ""; g.value = ""; n.textContent = "0.0"; }); updateTotal(); document.getElementById("result-text").value = ""; document.getElementById("student-name").value = ""; }
+
+        // ==========================================
+        // 6. DITADO POR VOZ (INALTERADO)
+        // ==========================================
+        function startVoiceTyping(targetType) {
+            if (recognition && recognition.recognizing) { recognition.stop(); return; }
+            if (!('webkitSpeechRecognition' in window)) return alert("Navegador não suportado.");
+            currentVoiceTarget = targetType;
+            const inputs = document.querySelectorAll(`#scrollable-frame input[name='${currentVoiceTarget}']`);
+            currentVoiceInputIndex = Array.from(inputs).findIndex(inp => inp.value.trim() === "");
+            if (currentVoiceInputIndex === -1) { alert("Todos os campos preenchidos."); currentVoiceTarget = null; return; }
+            recognition = new webkitSpeechRecognition();
+            recognition.lang = 'pt-BR';
+            recognition.continuous = false;
+            recognition.interimResults = false;
+            recognition.onstart = () => {
+                updateVoiceButtonState(true);
+                if (inputs[currentVoiceInputIndex]) {
+                    inputs[currentVoiceInputIndex].focus();
+                    inputs[currentVoiceInputIndex].style.border = "2px solid var(--danger)";
+                }
+            };
+            recognition.onresult = (e) => {
+                speechText = e.results[e.results.length - 1][0].transcript.trim().replace(/[.,?!]/g, "").toLowerCase();
+                const map = { "zero":"0","um":"1","dois":"2","três":"3","quatro":"4","cinco":"5","seis":"6","sete":"7","oito":"8","nove":"9","dez":"10","onze":"11","doze":"12","treze":"13","catorze":"14","quatorze":"14","quinze":"15","dezesseis":"16","dezessete":"17","dezoito":"18","dezenove":"19","vinte":"20" };
+                if (map[speechText]) speechText = map[speechText];
+                if (speechText === "parar" || speechText === "para") return recognition.stop();
+                if (speechText === "pular" || speechText === "próximo" || speechText === "proximo") {
+                    if (inputs[currentVoiceInputIndex]) inputs[currentVoiceInputIndex].style.border = "1px solid var(--border-color)";
+                    moveToNextVoiceInput(true);
+                    if (currentVoiceTarget) setTimeout(() => recognition.start(), 100);
+                    return;
+                }
+                if (!/^\d+$/.test(speechText)) { setTimeout(() => recognition.start(), 100); return; }
+                const currentInput = inputs[currentVoiceInputIndex];
+                if (currentInput) {
+                    currentInput.value = speechText;
+                    currentInput.dispatchEvent(new Event('input'));
+                }
+                moveToNextVoiceInput(false);
+                if (currentVoiceTarget) setTimeout(() => recognition.start(), 200);
+            };
+            recognition.onerror = () => { updateVoiceButtonState(false); resetInputHighlight(); currentVoiceTarget = null; };
+            recognition.onend = () => { resetInputHighlight(); if (!currentVoiceTarget) updateVoiceButtonState(false); };
+            recognition.start();
+        }
+
+        function moveToNextVoiceInput(force) {
+            const inputs = document.querySelectorAll(`#scrollable-frame input[name='${currentVoiceTarget}']`);
+            if (inputs[currentVoiceInputIndex] && !force) inputs[currentVoiceInputIndex].style.border = "1px solid var(--border-color)";
+            let nextIndex = force ? currentVoiceInputIndex + 1 : Array.from(inputs).findIndex((inp, idx) => idx > currentVoiceInputIndex && inp.value.trim() === "");
+            if (nextIndex !== -1 && nextIndex < inputs.length) currentVoiceInputIndex = nextIndex;
+            else { alert(`Digitação concluída.`); if (recognition) recognition.stop(); currentVoiceTarget = null; updateVoiceButtonState(false); }
+        }
+
+        function updateVoiceButtonState(isRec) {
+            const bG = document.getElementById("start-voice-gabarito"), bR = document.getElementById("start-voice-resposta");
+            bG.disabled = false; bR.disabled = false;
+            bG.innerHTML = '<i class="fas fa-microphone"></i> Ditar Gabarito';
+            bR.innerHTML = '<i class="fas fa-microphone"></i> Ditar Respostas';
+            bG.classList.remove('recording'); bR.classList.remove('recording');
+            if (isRec && currentVoiceTarget) {
+                const t = currentVoiceTarget === "gabarito" ? bG : bR, o = currentVoiceTarget === "gabarito" ? bR : bG;
+                t.innerHTML = '<i class="fas fa-stop-circle"></i> Gravando... (Parar)';
+                t.classList.add('recording');
+                o.disabled = true;
+                t.onclick = () => { if (recognition) recognition.stop(); bG.onclick = () => startVoiceTyping('gabarito'); bR.onclick = () => startVoiceTyping('resposta'); };
+            } else {
+                bG.onclick = () => startVoiceTyping('gabarito');
+                bR.onclick = () => startVoiceTyping('resposta');
+            }
+        }
+
+        function resetInputHighlight() { document.querySelectorAll("#scrollable-frame input").forEach(inp => inp.style.border = "1px solid var(--border-color)"); }
+
+        // ==========================================
+        // 7. SCANNER E PROCESSAMENTO (WARP HUNTER) - INALTERADO
+        // ==========================================
+        function resetScanSequence() { if (confirm("Zerar contador de provas?")) { scanSequenceNumber = 1; document.getElementById('scan-sequence-number').textContent = `#${scanSequenceNumber}`; } }
+        function incrementScanSequence() { scanSequenceNumber++; document.getElementById('scan-sequence-number').textContent = `#${scanSequenceNumber}`; }
+        function printStudentReport() {
+            const reportText = document.getElementById("scan-result-report").value; if (!reportText) return;
+            const printWin = window.open('', '_blank');
+            if (!printWin) return alert("Libere os pop-ups.");
+            printWin.document.write(`<html><head><title>Relatório #${scanSequenceNumber - 1}</title><style>body{font-family:monospace;padding:20px;font-size:13px;}pre{white-space:pre-wrap;}</style></head><body><button onclick="window.print()" style="padding:10px;margin-bottom:10px;">Imprimir</button><pre>${reportText}</pre></body></html>`);
+            printWin.document.close();
+        }
+
+        function finishCurrentScan() { incrementScanSequence(); document.getElementById('btn-next-scan').style.display = 'none'; document.getElementById('btn-print-report').style.display = 'none'; document.getElementById('scan-result-summary').textContent = "Aguardando próxima prova..."; document.getElementById('scan-result-report').value = ""; retakePhotoScan(); }
+
+        async function startCameraScan() {
+            try {
+                videoStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: { ideal: 'environment' }, width: { ideal: 1920 }, height: { ideal: 1080 } } });
+                document.getElementById('camera-video').srcObject = videoStream;
+                document.getElementById('scan-camera-feed').style.display = 'block';
+                document.getElementById('captured-image-display').style.display = 'none';
+                document.getElementById('start-camera-btn').style.display = 'none';
+                document.getElementById('capture-photo-btn').style.display = 'inline-block';
+                document.getElementById('retake-photo-btn').style.display = 'none';
+                document.getElementById('process-scan-btn').style.display = 'none';
+                document.getElementById('scan-result-summary').textContent = "Câmera ativa. Posicione o gabarito e tire uma foto.";
+            } catch (err) { alert("Erro na câmera."); }
+        }
+
+        function stopCameraScan() {
+            if (videoStream) { videoStream.getTracks().forEach(t => t.stop()); document.getElementById('camera-video').srcObject = null; videoStream = null; }
+            document.getElementById('scan-camera-feed').style.display = 'none';
+            document.getElementById('capture-photo-btn').style.display = 'none';
+            document.getElementById('retake-photo-btn').style.display = 'none';
+            document.getElementById('process-scan-btn').style.display = 'none';
+            document.getElementById('start-camera-btn').style.display = 'inline-block';
+        }
+
+        function capturePhotoScan() {
+            const v = document.getElementById('camera-video'); if (!v || v.videoWidth === 0) return;
+            const c = document.createElement('canvas'); c.width = v.videoWidth; c.height = v.videoHeight;
+            c.getContext('2d').drawImage(v, 0, 0, c.width, c.height);
+            capturedCanvas = c;
+            document.getElementById('processed-image').src = c.toDataURL('image/jpeg', 0.8);
+            stopCameraScan();
+            document.getElementById('captured-image-display').style.display = 'block';
+            document.getElementById('retake-photo-btn').style.display = 'inline-block';
+            document.getElementById('scan-results-area').style.display = 'block';
+            document.getElementById('process-scan-btn').style.display = 'inline-block';
+            document.getElementById('process-scan-btn').textContent = (currentScanTemplate && currentScanTemplate.answerMode === 'manual') ? '🔢 Reconhecer Dígitos' : 'Processar e Corrigir';
+        }
+
+        function retakePhotoScan() { capturedCanvas = null; document.getElementById('captured-image-display').style.display = 'none'; document.getElementById('manual-entry-area').style.display = 'none'; startCameraScan(); }
+
+        function loadTemplatesForScanner() {
+            const sel = document.getElementById("template-selector-scan");
+            sel.innerHTML = "<option value=''>Selecione um Modelo...</option>";
+            if (!auth.currentUser) return;
+            database.ref(`dados_somatoria/${auth.currentUser.uid}/templates`).once('value', s => {
+                if (s.val()) {
+                    Object.entries(s.val()).forEach(([id, t]) => {
+                        const o = document.createElement("option"); o.value = id; o.textContent = `${t.name} (${t.numQuestions})`; sel.appendChild(o);
+                    });
+                }
+            });
+            sel.onchange = e => {
+                if (e.target.value) {
+                    database.ref(`dados_somatoria/${auth.currentUser.uid}/templates/${e.target.value}`).once('value', s => {
+                        currentScanTemplate = { id: e.target.value, ...s.val() };
+                        document.getElementById('scan-result-summary').textContent = `Modelo selecionado.`;
+                    });
+                } else { currentScanTemplate = null; document.getElementById('scan-result-summary').textContent = "Nenhum modelo selecionado."; }
+            };
+        }
+
+        // Função completa do Warp Hunter (inalterada)
+        function processScanImage() {
+            if (!capturedCanvas) { alert("Nenhuma imagem capturada para processar."); return; }
+            if (!currentScanTemplate || !currentScanTemplate.numQuestions) { alert("Por favor, selecione um modelo de gabarito antes de processar."); return; }
+
+            const isManualMode = currentScanTemplate.answerMode === 'manual';
+            const gabaritoMasterInput = document.getElementById('gabarito-master').value.trim();
+            if (!gabaritoMasterInput) { alert("Por favor, insira o gabarito oficial para corrigir (ex: 09, 12, 31)."); return; }
+            const officialAnswers = gabaritoMasterInput.split(',').map(s => parseInt(s.trim())).filter(n => !isNaN(n));
+            if (officialAnswers.length !== currentScanTemplate.numQuestions) { alert(`O gabarito oficial deve ter exatamente ${currentScanTemplate.numQuestions} respostas numéricas. Lidas: ${officialAnswers.length}.`); return; }
+
+            const scanResultSummary = document.getElementById('scan-result-summary');
+            const scanResultReport = document.getElementById('scan-result-report');
+            const processScanBtn = document.getElementById('process-scan-btn');
+            scanResultSummary.textContent = "Aplicando Motor Warp-Hunter v7.0...";
+            scanResultReport.value = "Processando âncoras e leitura...";
+            processScanBtn.disabled = true;
+
+            setTimeout(() => {
+                const canvas = capturedCanvas;
+                const ctx = canvas.getContext('2d');
+                const { width, height } = canvas;
+                const imgData = ctx.getImageData(0, 0, width, height);
+                const data = imgData.data;
+
+                const getMagentaScore = (x, y) => {
+                    const idx = (Math.floor(y) * width + Math.floor(x)) * 4;
+                    if (idx < 0 || idx >= data.length) return 0;
+                    return Math.max(0, (data[idx] + data[idx + 2]) - (data[idx + 1] * 2));
+                };
+                const getLuma = (x, y) => {
+                    const idx = (Math.floor(y) * width + Math.floor(x)) * 4;
+                    if (idx < 0 || idx >= data.length) return 255;
+                    return (data[idx] * 0.29 + data[idx + 1] * 0.58 + data[idx + 2] * 0.11);
+                };
+                const findAnchor = (minX, minY, maxX, maxY) => {
+                    let bS = -1, bP = { x: (minX + maxX) / 2, y: (minY + maxY) / 2 };
+                    for (let y = minY + 10; y < maxY - 10; y += 15) {
+                        for (let x = minX + 10; x < maxX - 10; x += 15) {
+                            const s = getMagentaScore(x, y);
+                            if (s > bS) { bS = s; bP = { x, y }; }
+                        }
+                    }
+                    return bP;
+                };
+
+                const pTL = findAnchor(0, 0, width * .4, height * .4);
+                const pTR = findAnchor(width * .6, 0, width, height * .4);
+                const pBL = findAnchor(0, height * .6, width * .4, height);
+                const pBR = findAnchor(width * .6, height * .6, width, height);
+
+                const warpW = 800, warpH = 1100;
+                const warpCanvas = document.createElement('canvas');
+                warpCanvas.width = warpW; warpCanvas.height = warpH;
+                const wCtx = warpCanvas.getContext('2d');
+                const wData = wCtx.createImageData(warpW, warpH);
+
+                for (let y = 0; y < warpH; y++) {
+                    const v = y / (warpH - 1);
+                    for (let x = 0; x < warpW; x++) {
+                        const u = x / (warpW - 1);
+                        const tx1 = pTL.x + u * (pTR.x - pTL.x); const ty1 = pTL.y + u * (pTR.y - pTL.y);
+                        const tx2 = pBL.x + u * (pBR.x - pBL.x); const ty2 = pBL.y + u * (pBR.y - pBL.y);
+                        const px = tx1 + v * (tx2 - tx1), py = ty1 + v * (ty2 - ty1);
+                        const lum = getLuma(px, py);
+                        const idx = (y * warpW + x) * 4;
+                        wData.data[idx] = wData.data[idx + 1] = wData.data[idx + 2] = lum;
+                        wData.data[idx + 3] = 255;
+                    }
+                }
+                wCtx.putImageData(wData, 0, 0);
+
+                const getWarpLuma = (wx, wy) => {
+                    const idx = (Math.floor(wy) * warpW + Math.floor(wx)) * 4;
+                    if (idx < 0 || idx >= wData.data.length) return 255;
+                    return wData.data[idx];
+                };
+                const snapToSquare = (wx, wy, radius) => {
+                    let sX = 0, sY = 0, count = 0;
+                    const thresh = 130;
+                    for (let dy = -radius; dy <= radius; dy += 2) {
+                        for (let dx = -radius; dx <= radius; dx += 2) {
+                            if (getWarpLuma(wx + dx, wy + dy) < thresh) { sX += (wx + dx); sY += (wy + dy); count++; }
+                        }
+                    }
+                    if (count > 5) return { x: sX / count, y: sY / count };
+                    return { x: wx, y: wy };
+                };
+
+                const N = currentScanTemplate.numQuestions;
+                const optionsList = (currentScanTemplate.alternatives && currentScanTemplate.alternatives.length > 0) ? [...currentScanTemplate.alternatives].sort((a,b)=>a-b) : [1,2,4,8,16,32];
+                const numOpts = optionsList.length;
+                const numCols = N > 20 ? 2 : 1;
+                const rows = Math.ceil(N / numCols);
+                const studentResponses = Array(N).fill(0);
+
+                ctx.clearRect(0, 0, width, height);
+                const anchorTL_x = 14, anchorTL_y = 14;
+                const boxW = 182, boxH = 269;
+
+                if (isManualMode) {
+                    const maxSum_s = optionsList.reduce((a,b)=>a+b,0);
+                    const maxTens_s = maxSum_s <= 31 ? 3 : (maxSum_s <= 63 ? 6 : 9);
+                    const isDense = N > 40;
+                    const NUM_COLS_M = isDense ? Math.ceil(N/5) : 10;
+                    const DIG_GAP_S = isDense ? 4.1 : 5.0;
+                    const QCOL_W_S = isDense ? (190/NUM_COLS_M) : 19;
+                    const Q_START_X_S = 10;
+                    const Q_START_Y_S = 62;
+                    const DCOL_GAP_S = isDense ? 4.5 : 5.5;
+                    const Q_SEP_S = 5;
+                    const Q_PER_COL_S = Math.ceil(N/NUM_COLS_M);
+                    const xD_offset_s = isDense ? 6 : 7;
+                    const blockH_s = 10 * DIG_GAP_S + Q_SEP_S;
+
+                    const getLocalThresh = (wx, wy) => { let maxLuma=0; for(let dy=-12;dy<=12;dy+=4){ for(let dx=-12;dx<=12;dx+=4){ let l=getWarpLuma(wx+dx,wy+dy); if(l>maxLuma) maxLuma=l; } } return maxLuma*0.45; };
+                    const measureDigitInk = (px, py) => { let ink=0; const lt=getLocalThresh(px,py); for(let dy=-7;dy<=7;dy+=2){ for(let dx=-7;dx<=7;dx+=2){ if(getWarpLuma(px+dx,py+dy)<lt) ink++; } } return ink; };
+                    const snapToInk = (wx, wy) => { let bS=-1,bP={x:wx,y:wy}; for(let dy=-3;dy<=3;dy++){ for(let dx=-3;dx<=3;dx++){ const s=measureDigitInk(wx+dx,wy+dy); if(s>bS){ bS=s; bP={x:wx+dx,y:wy+dy}; } } } return bP; };
+                    const svgToWarp = (svgX, svgY) => ({ wx: ((svgX - anchorTL_x) / boxW) * (warpW - 1), wy: ((svgY - anchorTL_y) / boxH) * (warpH - 1) });
+                    const warpToOrig = (wx, wy) => { const ru=wx/(warpW-1), rv=wy/(warpH-1); const tx1=pTL.x+ru*(pTR.x-pTL.x), ty1=pTL.y+ru*(pTR.y-pTL.y); const tx2=pBL.x+ru*(pBR.x-pBL.x), ty2=pBL.y+ru*(pBR.y-pBL.y); return { x: tx1+rv*(tx2-tx1), y: ty1+rv*(ty2-ty1) }; };
+
+                    for (let i=0; i<N; i++) {
+                        const qi = Math.floor(i/NUM_COLS_M), c_q = i%NUM_COLS_M;
+                        const qXBase_s = Q_START_X_S + c_q*QCOL_W_S, xD_s = qXBase_s+xD_offset_s, xU_s = xD_s+DCOL_GAP_S;
+                        let tensDigit=0, unitsDigit=0, maxTensInk=20, maxUnitsInk=20;
+                        for(let d=0;d<=9;d++){ const dy_s=Q_START_Y_S+qi*blockH_s+d*DIG_GAP_S; const {wx:wxU_raw,wy:wyU_raw}=svgToWarp(xU_s,dy_s); const physU=snapToInk(wxU_raw,wyU_raw); const inkU=measureDigitInk(physU.x,physU.y); if(inkU>maxUnitsInk){ maxUnitsInk=inkU; unitsDigit=d; } }
+                        for(let d=0;d<=maxTens_s;d++){ const dy_s=Q_START_Y_S+qi*blockH_s+d*DIG_GAP_S; const {wx:wxD_raw,wy:wyD_raw}=svgToWarp(xD_s,dy_s); const physD=snapToInk(wxD_raw,wyD_raw); const inkT=measureDigitInk(physD.x,physD.y); if(inkT>maxTensInk){ maxTensInk=inkT; tensDigit=d; } }
+                        let tensMarked=maxTensInk>20, unitsMarked=maxUnitsInk>20;
+                        if(tensMarked||unitsMarked) studentResponses[i]=tensDigit*10+unitsDigit; else studentResponses[i]=0;
+                        ctx.fillStyle='rgba(255,204,0,0.70)'; ctx.font='bold 12px Arial'; ctx.textAlign='center';
+                        if(tensMarked){ const tensY_s=Q_START_Y_S+qi*blockH_s+tensDigit*DIG_GAP_S; const {wx,wy}=svgToWarp(xD_s,tensY_s); const pT=warpToOrig(snapToInk(wx,wy).x,snapToInk(wx,wy).y); ctx.beginPath(); ctx.arc(pT.x,pT.y,12,0,2*Math.PI); ctx.fill(); ctx.fillStyle='#000'; ctx.fillText(tensDigit,pT.x,pT.y+4); ctx.fillStyle='rgba(255,204,0,0.70)'; }
+                        if(unitsMarked){ const unitsY_s=Q_START_Y_S+qi*blockH_s+unitsDigit*DIG_GAP_S; const {wx,wy}=svgToWarp(xU_s,unitsY_s); const pU=warpToOrig(snapToInk(wx,wy).x,snapToInk(wx,wy).y); ctx.beginPath(); ctx.arc(pU.x,pU.y,12,0,2*Math.PI); ctx.fill(); ctx.fillStyle='#000'; ctx.fillText(unitsDigit,pU.x,pU.y+4); ctx.fillStyle='rgba(255,204,0,0.70)'; }
+                    }
+                } else {
+                    for (let i=0; i<N; i++) {
+                        const qi=Math.floor(i/numCols), ci=i%numCols, cy=rows>1?65+qi*(210/(rows-1||1)):65;
+                        const v=(cy-anchorTL_y)/boxH, xOffset=ci===1?125:30;
+                        for(let j=0;j<numOpts;j++){
+                            const cx=xOffset+j*(numOpts>1?(55/(numOpts-1)):0), u=(cx-anchorTL_x)/boxW, wx=u*(warpW-1), wy=v*(warpH-1);
+                            const physical=snapToSquare(wx,wy,15);
+                            const ru=physical.x/(warpW-1), rv=physical.y/(warpH-1);
+                            const tx1=pTL.x+ru*(pTR.x-pTL.x), ty1=pTL.y+ru*(pTR.y-pTL.y), tx2=pBL.x+ru*(pBR.x-pBL.x), ty2=pBL.y+ru*(pBR.y-pBL.y);
+                            const finalX=tx1+rv*(tx2-tx1), finalY=ty1+rv*(ty2-ty1);
+                            let ink=0, localWhite=0;
+                            for(let k=0;k<4;k++) localWhite+=getWarpLuma(physical.x+(k%2?30:-30), physical.y+(k<2?30:-30));
+                            const localThresh=(localWhite/4)*0.48;
+                            for(let dy=-8;dy<=8;dy+=2){ for(let dx=-8;dx<=8;dx+=2){ if(getWarpLuma(physical.x+dx,physical.y+dy)<localThresh) ink++; } }
+                            const isMarked=ink>30;
+                            if(isMarked) studentResponses[i]+=optionsList[j];
+                            ctx.strokeStyle=isMarked?'#ffcc00':'#ef4444'; ctx.lineWidth=isMarked?3:1;
+                            ctx.beginPath(); ctx.arc(finalX,finalY,10,0,2*Math.PI); ctx.stroke();
+                            if(isMarked){ ctx.fillStyle='#ffcc00'; ctx.fill(); }
+                        }
+                    }
+                }
+                ctx.fillStyle='#ff00ff';
+                [pTL,pTR,pBL,pBR].forEach(p=>ctx.fillRect(p.x-15,p.y-15,30,30));
+                document.getElementById('processed-image').src=canvas.toDataURL('image/jpeg',0.8);
+
+                let totalScore=0;
+                const scanLabel=isManualMode?'Scan Dígitos':'Scan Digital';
+                let reportText=`Relatório SomatorIA - ${scanLabel} (Prova #${scanSequenceNumber})\n`;
+                reportText+=`Data: ${new Date().toLocaleString("pt-BR")}\n\n`;
+                reportText+="======================================================\n";
+                reportText+="| Questão | Oficial | Lida (Soma) | Nota Ponderada |\n";
+                reportText+="|---------|---------|-------------|----------------|\n";
+                const valQuestao=currentScanTemplate.defaultValue;
+                for(let i=0;i<N;i++){
+                    const B=officialAnswers[i], D=studentResponses[i];
+                    let questionScore=0;
+                    if(B===0||isNaN(B)) questionScore=0;
+                    else if(D===B) questionScore=valQuestao;
+                    else if((D&B)===D&&D>0){ const bitsG=(B.toString(2).match(/1/g)||[]).length, bitsR=(D.toString(2).match(/1/g)||[]).length; questionScore=(bitsR/bitsG)*valQuestao; }
+                    else questionScore=0;
+                    questionScore=Math.round(questionScore*10)/10;
+                    totalScore+=questionScore;
+                    reportText+=`| ${String(i+1).padEnd(7)} | ${String(B).padEnd(7)} | ${String(D).padEnd(11)} | ${questionScore.toFixed(1).padEnd(14)} |\n`;
+                }
+                reportText+="======================================================\n";
+                reportText+=`NOTA FINAL: ${totalScore.toFixed(1)} / ${(N*valQuestao).toFixed(1)}\n`;
+                scanResultSummary.textContent=`Correção Automática Concluída! Nota Final: ${totalScore.toFixed(1)}`;
+                scanResultReport.value=reportText;
+                document.getElementById('btn-print-report').style.display='inline-block';
+                document.getElementById('btn-next-scan').style.display='inline-block';
+                processScanBtn.disabled=false;
+                if(auth.currentUser) logActionToRTDB('SomatorIA',`gabarito escaneado (Nota: ${totalScore.toFixed(1)})`,auth.currentUser.uid);
+            },100);
+        }
+
+        // ==========================================
+        // 8. TEMPLATES (CAMINHOS UNIFICADOS)
+        // ==========================================
+        function previewLogo(event) {
+            const file = event.target.files[0]; if (!file) { base64LogoToSave = null; document.getElementById('logo-preview').style.display = 'none'; return; }
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const img = new Image(); img.onload = function() {
+                    const canvas = document.createElement('canvas'); const MAX = 250; let w = img.width, h = img.height;
+                    if (w > h) { if (w > MAX) { h *= MAX / w; w = MAX; } } else { if (h > 150) { w *= 150 / h; h = 150; } }
+                    canvas.width = w; canvas.height = h; const ctx = canvas.getContext('2d'); ctx.clearRect(0, 0, w, h); ctx.drawImage(img, 0, 0, w, h);
+                    base64LogoToSave = canvas.toDataURL('image/png'); document.getElementById('logo-preview').src = base64LogoToSave; document.getElementById('logo-preview').style.display = 'block';
+                }; img.src = e.target.result;
+            }; reader.readAsDataURL(file);
+        }
+
+        function getAnswerMode() { return document.querySelector('input[name="answer-mode"]:checked')?.value || 'bubbles'; }
+        function setAnswerMode(mode) { const el = document.getElementById('mode-' + (mode || 'bubbles')); if (el) el.checked = true; updateModeUI(); }
+        function updateModeUI() { document.getElementById('alternatives-section').style.display = 'block'; }
+        function getSelectedAlternatives() { return [1, 2, 4, 8, 16, 32, 64].filter(v => { const cb = document.getElementById('alt-' + v); return cb && cb.checked; }); }
+        function setAlternativeCheckboxes(alts) { [1, 2, 4, 8, 16, 32, 64].forEach(v => { const cb = document.getElementById('alt-' + v); if (cb) cb.checked = alts ? alts.includes(v) : (v !== 64); }); updateModeUI(); }
+
+        function updateAltSummary() {
+            let sum = 0; document.querySelectorAll('#alternatives-selector input[type="checkbox"]:checked').forEach(b => sum += parseInt(b.value));
+            const maxT = sum <= 31 ? 3 : (sum <= 63 ? 6 : 9);
+            const label = document.getElementById('manual-sum-dynamic-label'); if (label) label.innerHTML = `Soma Máxima: <strong>${sum}</strong> | Dezenas: <strong>0 a ${maxT}</strong>`;
+        }
+
+        function saveCustomTemplate() {
+            const user = auth.currentUser; if (!user) return alert("Não autenticado.");
+            const tName = document.getElementById("template-name").value.trim(), tInst = document.getElementById("template-institution").value.trim(), numQ = parseInt(document.getElementById("num-questions-template").value), defVal = parseFloat(document.getElementById("default-question-value").value), aMode = getAnswerMode(), alts = getSelectedAlternatives();
+            if (!tName || isNaN(numQ) || numQ <= 0 || isNaN(defVal) || defVal <= 0) return alert("Preencha todos os campos.");
+            if (alts.length === 0) return alert("Selecione uma alternativa.");
+            const tId = database.ref(`dados_somatoria/${user.uid}/templates`).push().key;
+            database.ref(`dados_somatoria/${user.uid}/templates/${tId}`).set({ name: tName, institution: tInst, logoBase64: base64LogoToSave, numQuestions: numQ, defaultValue: defVal, alternatives: alts, answerMode: aMode, createdAt: firebase.database.ServerValue.TIMESTAMP }).then(() => {
+                alert("Salvo!"); document.getElementById("template-name").value = ""; document.getElementById("template-logo").value = ""; document.getElementById("logo-preview").style.display = "none"; base64LogoToSave = null; loadSavedTemplates();
+            });
+        }
+
+        function loadSavedTemplates() {
+            const list = document.getElementById("saved-templates-list"), user = auth.currentUser; list.innerHTML = "";
+            if (!user) return;
+            database.ref(`dados_somatoria/${user.uid}/templates`).once('value', snap => {
+                if (snap.val()) {
+                    Object.entries(snap.val()).forEach(([id, t]) => {
+                        const li = document.createElement("li"); li.className = "list-item";
+                        li.innerHTML = `<div><strong>${t.name}</strong><br><small style="color:var(--text-muted)">${t.numQuestions} Qts | ${t.defaultValue.toFixed(1)} pts</small></div>
+                        <div>
+                            <button class="btn-primary" style="padding:5px 10px; font-size:0.8rem;" onclick="selectTemplate('${id}')">Selecionar</button>
+                            <button class="btn-danger" style="padding:5px 10px; font-size:0.8rem; margin-left:5px;" onclick="deleteTemplate('${id}', '${t.name}')"><i class="fas fa-trash"></i></button>
+                        </div>`;
+                        list.appendChild(li);
+                    });
+                } else list.innerHTML = "<p style='color:var(--text-muted); text-align:center;'>Nenhum modelo salvo.</p>";
+            });
+        }
+
+        window.selectTemplate = function(id) {
+            database.ref(`dados_somatoria/${auth.currentUser.uid}/templates/${id}`).once('value', snap => {
+                currentTemplate = { id, ...snap.val() }; setAlternativeCheckboxes(currentTemplate.alternatives); setAnswerMode(currentTemplate.answerMode);
+                renderTemplatePreview(currentTemplate); alert(`Modelo "${currentTemplate.name}" selecionado.`);
+            });
+        };
+
+        window.deleteTemplate = function(id, name) {
+            if (!confirm(`Excluir ${name}?`)) return;
+            database.ref(`dados_somatoria/${auth.currentUser.uid}/templates/${id}`).remove().then(() => { loadSavedTemplates(); if (currentTemplate.id === id) currentTemplate = { name: "Padrão", numQuestions: 40, defaultValue: VALOR_QUESTAO_PADRAO }; renderTemplatePreview(currentTemplate); });
+        };
+
+        function renderTemplatePreview(t) {
+            const p = document.getElementById("template-preview-area"); p.innerHTML = `<h4 style="color:var(--primary-dark); margin-top:0;">Prévia: ${t.name}</h4>`;
+            const grid = document.createElement("div"); grid.style.cssText = "display:grid; grid-template-columns:repeat(10,1fr); gap:5px; max-width:400px; margin:10px auto; border:1px solid var(--border-color); padding:15px; border-radius:var(--radius-md); background:var(--surface);";
+            for (let i = 1; i <= t.numQuestions; i++) {
+                const b = document.createElement("div"); b.textContent = i; b.style.cssText = "width:25px; height:25px; border-radius:50%; border:1px solid var(--text-main); display:flex; justify-content:center; align-items:center; font-size:0.75rem; font-weight:bold;"; grid.appendChild(b);
+            }
+            p.appendChild(grid); p.innerHTML += `<p style="margin-top:10px; font-weight:600;">Total: ${t.numQuestions} | Valor: ${t.defaultValue.toFixed(1)}</p>`;
+        }
+
+        // Impressão completa do modelo (inalterada)
+        function printSelectedTemplate() {
+            if (!currentTemplate || !currentTemplate.id) return alert("Selecione um modelo para imprimir.");
+            const printWin = window.open('', '_blank'); if (!printWin) return alert("Libere os pop-ups.");
+            const N = currentTemplate.numQuestions, options = (currentTemplate.alternatives && currentTemplate.alternatives.length > 0) ? [...currentTemplate.alternatives].sort((a,b)=>a-b) : [1,2,4,8,16,32];
+            const numOpts = options.length, numCols = N > 20 ? 2 : 1, rows = Math.ceil(N / numCols), isManualMode = currentTemplate.answerMode === 'manual';
+            let svg = `<rect x="10" y="10" width="10" height="10" fill="#ff00ff" rx="1" /><rect x="190" y="10" width="10" height="10" fill="#ff00ff" rx="1" /><rect x="10" y="277" width="10" height="10" fill="#ff00ff" rx="1" /><rect x="190" y="277" width="10" height="10" fill="#ff00ff" rx="1" />`;
+            const subtitle = isManualMode ? 'Some os valores e escreva o resultado.' : 'Pinte completamente as bolinhas. O sistema lê a SOMA.';
+            let titleY = 28; if (currentTemplate.logoBase64) svg += `<image href="${currentTemplate.logoBase64}" x="85" y="7" width="40" preserveAspectRatio="xMaxYMin meet" />`;
+            svg += `<text x="105" y="${titleY}" font-family="Arial" font-size="8" font-weight="bold" text-anchor="middle" fill="#000">${currentTemplate.name.toUpperCase()}</text><text x="105" y="38" font-family="Arial" font-size="4.5" text-anchor="middle" fill="#000">Aluno(a): _________________________________________________ Turma: _______</text><text x="105" y="46" font-family="Arial" font-size="3.5" font-style="italic" text-anchor="middle" fill="#333">${subtitle}</text><line x1="10" y1="52" x2="200" y2="52" stroke="#000" stroke-width="0.5" />`;
+            if (!isManualMode) {
+                for (let i = 0; i < N; i++) {
+                    const qi = Math.floor(i / numCols), ci = i % numCols, cy = rows > 1 ? 65 + qi * (210 / (rows - 1 || 1)) : 65, xOff = ci === 1 ? 125 : 30;
+                    svg += `<text x="${xOff - 8}" y="${cy + 1.5}" font-family="Arial" font-size="4.5" font-weight="bold" text-anchor="end" fill="#000">${String(i + 1).padStart(2, '0')}</text>`;
+                    for (let j = 0; j < numOpts; j++) { const cx = xOff + j * (numOpts > 1 ? (55 / (numOpts - 1)) : 0); svg += `<circle cx="${cx}" cy="${cy}" r="3.5" stroke="#000" stroke-width="0.5" fill="none" /><text x="${cx}" cy="${cy + 1.2}" font-family="Arial" font-size="3.2" font-weight="bold" text-anchor="middle" fill="#000">${String(options[j]).padStart(2, '00')}</text>`; }
+                }
+            } else {
+                const maxTens = options.reduce((a,b)=>a+b,0) <= 31 ? 3 : 6; const NUM_COLS_M = N > 40 ? Math.ceil(N/5) : 10, Q_PER_COL = Math.ceil(N/NUM_COLS_M), DIG_R = N > 40 ? 1.7 : 2.0, DIG_GAP = N > 40 ? 4.1 : 5.0, DCOL_GAP = N > 40 ? 4.5 : 5.5, QCOL_W = N > 40 ? (190/NUM_COLS_M) : 19, xD_off = N > 40 ? 6 : 7;
+                for (let qi = 0; qi < Q_PER_COL; qi++) {
+                    for (let c = 0; c < NUM_COLS_M; c++) {
+                        const qNum = qi * NUM_COLS_M + c + 1; if (qNum > N) break;
+                        const xD = 10 + c * QCOL_W + xD_off, xU = xD + DCOL_GAP, qY = 62 + qi * (10 * DIG_GAP + 5) - 3.2;
+                        svg += `<text x="${(xD+xU)/2}" y="${qY}" font-family="Arial" font-size="${N>40?2.8:3.2}" font-weight="bold" text-anchor="middle" fill="#000">${String(qNum).padStart(2, '0')}</text>`;
+                        for (let d = 0; d <= 9; d++) {
+                            const dy = 62 + qi * (10 * DIG_GAP + 5) + d * DIG_GAP;
+                            if (d <= maxTens) svg += `<circle cx="${xD}" cy="${dy}" r="${DIG_R}" stroke="#999" stroke-width="0.35" fill="none" /><text x="${xD}" y="${dy+(DIG_R*0.45)}" font-family="Arial" font-size="${N>40?1.9:2.3}" text-anchor="middle" fill="#ccc">${d}</text>`;
+                            svg += `<circle cx="${xU}" cy="${dy}" r="${DIG_R}" stroke="#999" stroke-width="0.35" fill="none" /><text x="${xU}" y="${dy+(DIG_R*0.45)}" font-family="Arial" font-size="${N>40?1.9:2.3}" text-anchor="middle" fill="#ccc">${d}</text>`;
+                        }
+                    }
+                }
+            }
+            svg += `<text x="105" y="292" font-family="Arial" font-size="3" text-anchor="middle" fill="#555">Gerado por <tspan fill="#4CAF50" font-weight="bold">SomatorIA</tspan> | <tspan fill="#001B4A" font-weight="bold">Systematrix</tspan></text>`;
+            printWin.document.write(`<html><head><style>@media print{@page{size:A4 portrait;margin:0;}svg{width:210mm;height:297mm;}}svg{max-width:210mm;max-height:297mm;}</style></head><body><svg viewBox="0 0 210 297">${svg}</svg><script>setTimeout(()=>window.print(),500);<\/script></body></html>`);
+            printWin.document.close();
+        }
+
+        // ==========================================
+        // 9. MANUTENÇÃO (INALTERADO)
+        // ==========================================
+        function formatTime(s) { return `${Math.floor(s/60)}:${(s%60).toString().padStart(2,'0')}`; }
+        function activateFullMaintenanceMode() { clearInterval(maintenanceInterval); document.getElementById('maintenance-warning-phase').style.display='none'; document.getElementById('maintenance-countdown-phase').style.display='none'; document.getElementById('maintenance-banner').style.display='none'; document.getElementById('maintenance-locked-phase').style.display='block'; document.getElementById('maintenance-overlay').style.display='flex'; }
+        function deactivateFullMaintenanceMode() { document.getElementById('maintenance-overlay').style.display='none'; document.getElementById('maintenance-banner').style.display='none'; clearInterval(maintenanceInterval); }
+        function listenForMaintenance() {
+            if(maintenanceListener) return;
+            maintenanceListener = database.ref('config/manutencao').on('value', s => {
+                if (s.val() === true && !maintenanceSequenceStarted) { maintenanceSequenceStarted = true; document.getElementById('maintenance-warning-phase').style.display='block'; document.getElementById('maintenance-overlay').style.display='flex'; }
+            });
+        }
+
+        document.addEventListener("DOMContentLoaded", () => {
+            loadAccountChooser();
+            document.querySelectorAll('#alternatives-selector input').forEach(i => i.addEventListener('change', updateAltSummary)); updateAltSummary();
+        });
+    </script>
+</body>
+</html>
