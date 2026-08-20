@@ -361,3 +361,24 @@ Legenda de status: 🟢 funcional (aparente) · 🟡 parcial/risco · 🔴 quebr
 4. **Workers externos (bepis/ppc) fora do repo** — precisam ser absorvidos pelo backend Python novo ou substituídos.
 5. **Links públicos ativos** (quiosque RemanejIA, horários públicos, links de cadastro de professor) — não podem quebrar sem migração/redirect.
 6. **IDs de licença legados** (`acquiredSystems` strings livres) × novos planos.
+
+## CONCLUÍDO nesta sessão
+- Frontend Next.js completo (20 rotas): login/registro/recuperação, dashboard,
+  gestão (turmas/alunos/presença/notas/boletim), instituição (convites/cargos/
+  regras/Studio/personalização), assinatura, admin global.
+- 11 sistemas com interface própria (isolamento visual preservado):
+  mapia, horia, somatoria, remanejia, buscia, domicilia, avalia, provia, tri +
+  notas/presença na Gestão.
+- SomatorIA: gabarito SVG A4 + scanner Warp Hunter v7.0 portados 1:1.
+- MapIA: editor canvas com 4 layouts (tradicional/U/grupos 2–6/roda).
+- RemanejIA: percentual de mistura configurável (novo TNE §14).
+- BuscIA: extensão Chrome (manifest v3) em extension-buscia/.
+- GET /academico/{t}/config-avaliacao adicionado (frontend consumia).
+- Validação no navegador: registro Firebase Auth → dashboard; MapIA canvas.
+- Build: next build limpo; tsc sem erros; ESLint apenas 1 warning.
+- Testes: 29/29 pytest.
+
+PENDENTE (exige segredos/deploy staging):
+- Integrações Google/Microsoft (OAuth institucional).
+- E2E Playwright + Firebase service-account em staging.
+- Observabilidade e hardening final.
