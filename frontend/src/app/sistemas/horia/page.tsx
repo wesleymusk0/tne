@@ -5,6 +5,7 @@ import { useCallback, useMemo, useState } from "react";
 import { AppShell } from "@/components/AppShell";
 import { api, ApiError } from "@/lib/api";
 import { useAuth } from "@/lib/auth";
+import { menuParaSistema } from "@/lib/menu";
 
 const DIAS = ["SEG", "TER", "QUA", "QUI", "SEX"];
 const TURNOS_PADRAO = {
@@ -72,10 +73,7 @@ export default function HoriaPage() {
   const [verProfessores, setVerProfessores] = useState(false);
 
   const horarios = TURNOS_PADRAO[turno];
-  const menuItens = [
-    { href: "/dashboard", rotulo: "Dashboard", icone: "🏠" },
-    { href: "/sistemas/horia", rotulo: "HorIA", icone: "🕐" },
-  ];
+  const menuItens = menuParaSistema("horia");
 
   const novoProfessor = useCallback((): Professor => ({
     nome: "",
@@ -154,7 +152,7 @@ export default function HoriaPage() {
       </div>
 
       {aba === "config" && (
-        <div className="max-w-md flex flex-col gap-3 rounded-xl border border-slate-100 p-4 text-sm">
+        <div className="max-w-md flex flex-col gap-3 rounded-md border border-slate-100 p-4 text-sm">
           <label className="font-medium text-slate-700">Turno</label>
           <select className="rounded-lg border border-slate-200 px-3 py-2" value={turno} onChange={(e) => setTurno(e.target.value as keyof typeof TURNOS_PADRAO)}>
             {Object.keys(TURNOS_PADRAO).map((t) => (
@@ -227,7 +225,7 @@ export default function HoriaPage() {
             + Novo professor
           </button>
           {professores.map((p, idx) => (
-            <div key={idx} className="rounded-xl border border-slate-100 p-4">
+            <div key={idx} className="rounded-md border border-slate-100 p-4">
               <div className="flex flex-wrap items-center gap-3">
                 <input
                   className="rounded-lg border border-slate-200 px-3 py-2 text-sm"
@@ -303,7 +301,7 @@ export default function HoriaPage() {
         <div className="flex flex-col gap-4">
           <p className="text-sm text-slate-600">Defina aulas semanais por matéria e o professor de cada uma.</p>
           {turmas.map((t, ti) => (
-            <div key={ti} className="rounded-xl border border-slate-100 p-4">
+            <div key={ti} className="rounded-md border border-slate-100 p-4">
               <h3 className="font-medium text-slate-900">{t.nome}</h3>
               <div className="mt-2 grid gap-2 sm:grid-cols-2">
                 {materias.map((m) => (
@@ -349,7 +347,7 @@ export default function HoriaPage() {
             Fixe matérias em horários específicos (clique e selecione; útil para congelar parte da grade).
           </p>
           {turmas.map((t) => (
-            <div key={t.nome} className="rounded-xl border border-slate-100 p-4">
+            <div key={t.nome} className="rounded-md border border-slate-100 p-4">
               <h3 className="font-medium text-slate-900">{t.nome}</h3>
               <div className="mt-2 inline-grid gap-1" style={{ gridTemplateColumns: `repeat(${DIAS.length + 1}, auto)` }}>
                 <span />
@@ -412,7 +410,7 @@ export default function HoriaPage() {
             ))}
           </div>
           {regras.map((r, i) => (
-            <div key={i} className="flex flex-wrap items-center gap-2 rounded-xl border border-slate-100 p-3 text-xs">
+            <div key={i} className="flex flex-wrap items-center gap-2 rounded-md border border-slate-100 p-3 text-xs">
               <span className="rounded bg-primary-50 px-2 py-0.5 font-medium text-primary">{r.tipo}</span>
               <select className="rounded border border-slate-200 px-2 py-1" value={r.turma ?? ""} onChange={(e) => definirRegra(i, "turma", e.target.value || undefined)}>
                 <option value="">Todas as turmas</option>
@@ -492,7 +490,7 @@ export default function HoriaPage() {
           {resultado?.sucesso && (
             <div className="flex flex-col gap-4">
               {Object.entries(verProfessores ? resultado.horarios_professores ?? {} : resultado.horarios_turmas ?? {}).map(([nome, gradeD]) => (
-                <div key={nome} className="rounded-xl border border-slate-100 p-4">
+                <div key={nome} className="rounded-md border border-slate-100 p-4">
                   <h3 className="font-medium text-slate-900">{nome}</h3>
                   <div className="mt-2 inline-grid gap-1" style={{ gridTemplateColumns: `repeat(${DIAS.length + 1}, auto)` }}>
                     <span />

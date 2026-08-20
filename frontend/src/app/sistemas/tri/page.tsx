@@ -5,6 +5,7 @@ import { useMemo, useState } from "react";
 import { AppShell } from "@/components/AppShell";
 import { api, ApiError } from "@/lib/api";
 import { useAuth } from "@/lib/auth";
+import { menuParaSistema } from "@/lib/menu";
 
 interface ItemTRI {
   index: number;
@@ -60,10 +61,7 @@ export default function TriPage() {
   const [msg, setMsg] = useState("");
   const [gerando, setGerando] = useState(false);
 
-  const menuItens = [
-    { href: "/dashboard", rotulo: "Dashboard", icone: "🏠" },
-    { href: "/sistemas/tri", rotulo: "Simulador TRI", icone: "📊" },
-  ];
+  const menuItens = menuParaSistema("tri");
 
   function carregarCsv() {
     const r = parseCsv(csv);
@@ -132,7 +130,7 @@ export default function TriPage() {
         {msg && <p className="mt-2 text-sm text-slate-600">{msg}</p>}
 
         {itens.length > 0 && (
-          <div className="mt-4 overflow-x-auto rounded-xl border border-slate-100">
+          <div className="mt-4 overflow-x-auto rounded-md border border-slate-100">
             <table className="w-full text-left text-xs">
               <thead className="bg-slate-50 text-slate-500">
                 <tr>
@@ -166,7 +164,7 @@ export default function TriPage() {
         )}
 
         {resultado && (
-          <div className="mt-6 rounded-xl border border-slate-100 p-4">
+          <div className="mt-6 rounded-md border border-slate-100 p-4">
             <div className="mb-3 text-lg font-semibold text-slate-900">
               Média SAEB: {resultado.avgSaeb ?? "—"} (0–500)
             </div>

@@ -70,7 +70,7 @@ export default function AssinaturaPage() {
 
   return (
     <AppShell titulo="Assinatura" itens={itens}>
-      <div className="mb-6 rounded-xl border border-slate-100 p-4 text-sm text-slate-700">
+      <div className="mb-6 rounded-md border border-slate-100 p-4 text-sm text-slate-700">
         Plano atual: <strong className="uppercase">{planoAtual}</strong>
         {" · "}
         Status:{" "}
@@ -84,7 +84,7 @@ export default function AssinaturaPage() {
 
       <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
         {PLANOS.map((p) => (
-          <div key={p.id} className={`flex flex-col rounded-xl border p-5 shadow-sm ${planoAtual === p.id ? "border-accent ring-1 ring-accent" : "border-slate-100"}`}>
+          <div key={p.id} className={`flex flex-col rounded-md border p-5 shadow-sm ${planoAtual === p.id ? "border-accent ring-1 ring-accent" : "border-slate-100"}`}>
             <div className="flex items-baseline justify-between">
               <h2 className="font-semibold text-slate-900">{p.nome}</h2>
               <span className="text-sm font-medium text-slate-600">{p.preco}</span>

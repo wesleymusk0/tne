@@ -167,7 +167,7 @@ export default function InstituicaoPage() {
 
       {aba === "Convites" && (
         <div className="grid gap-6 lg:grid-cols-2">
-          <form onSubmit={criarConvite} className="flex flex-col gap-3 rounded-xl border border-slate-100 p-4">
+          <form onSubmit={criarConvite} className="flex flex-col gap-3 rounded-md border border-slate-100 p-4">
             <h2 className="font-medium text-slate-900">Convidar usuário</h2>
             <input className={campo} placeholder="Nome" value={convNome} onChange={(e) => setConvNome(e.target.value)} required />
             <input className={campo} type="email" placeholder="E-mail" value={convEmail} onChange={(e) => setConvEmail(e.target.value)} required />
@@ -179,7 +179,7 @@ export default function InstituicaoPage() {
             <p className="text-xs text-slate-500">Sem senha: o usuário fica pendente e ativa ao se registrar com este e-mail.</p>
             <button className="rounded-lg bg-primary px-4 py-2 text-sm font-medium text-white hover:bg-primary-600">Criar convite</button>
           </form>
-          <div className="rounded-xl border border-slate-100 p-4">
+          <div className="rounded-md border border-slate-100 p-4">
             <h2 className="mb-3 font-medium text-slate-900">Convites enviados</h2>
             {convites.length === 0 ? (
               <p className="text-sm text-slate-500">Nenhum convite.</p>
@@ -201,7 +201,7 @@ export default function InstituicaoPage() {
 
       {aba === "Cargos" && (
         <div className="grid gap-6 lg:grid-cols-2">
-          <form onSubmit={criarCargo} className="flex flex-col gap-3 rounded-xl border border-slate-100 p-4">
+          <form onSubmit={criarCargo} className="flex flex-col gap-3 rounded-md border border-slate-100 p-4">
             <h2 className="font-medium text-slate-900">Novo cargo</h2>
             <input className={campo} placeholder="Nome (ex.: Pedagogo)" value={cargoNome} onChange={(e) => setCargoNome(e.target.value)} required />
             <div className="max-h-64 overflow-auto rounded-lg border border-slate-100 p-3">
@@ -230,7 +230,7 @@ export default function InstituicaoPage() {
             </div>
             <button className="rounded-lg bg-primary px-4 py-2 text-sm font-medium text-white hover:bg-primary-600">Criar cargo</button>
           </form>
-          <div className="rounded-xl border border-slate-100 p-4">
+          <div className="rounded-md border border-slate-100 p-4">
             <h2 className="mb-3 font-medium text-slate-900">Cargos existentes</h2>
             <ul className="flex flex-col gap-2 text-sm">
               {cargos.map((c) => (
@@ -258,7 +258,7 @@ export default function InstituicaoPage() {
               e.preventDefault();
               salvarRegra();
             }}
-            className="flex flex-col gap-3 rounded-xl border border-slate-100 p-4"
+            className="flex flex-col gap-3 rounded-md border border-slate-100 p-4"
           >
             <h2 className="font-medium text-slate-900">Nova regra institucional</h2>
             <div className="flex flex-wrap items-center gap-2 text-sm text-slate-700">
@@ -281,7 +281,7 @@ export default function InstituicaoPage() {
             </p>
             <button className="rounded-lg bg-primary px-4 py-2 text-sm font-medium text-white hover:bg-primary-600">Salvar regra</button>
           </form>
-          <div className="rounded-xl border border-slate-100 p-4">
+          <div className="rounded-md border border-slate-100 p-4">
             <h2 className="mb-3 font-medium text-slate-900">Regras ativas</h2>
             {regras.length === 0 ? (
               <p className="text-sm text-slate-500">Nenhuma regra configurada.</p>
@@ -308,7 +308,7 @@ export default function InstituicaoPage() {
       )}
 
       {aba === "Personalização" && (
-        <form onSubmit={salvarPersonalizacao} className="flex max-w-lg flex-col gap-3 rounded-xl border border-slate-100 p-4">
+        <form onSubmit={salvarPersonalizacao} className="flex max-w-lg flex-col gap-3 rounded-md border border-slate-100 p-4">
           <h2 className="font-medium text-slate-900">Identidade da instituição</h2>
           <label className="text-xs font-medium text-slate-500">Nome exibido</label>
           <input className={campo} value={nomeInst} onChange={(e) => setNomeInst(e.target.value)} />
@@ -360,7 +360,7 @@ function StudioTab({ tenantId, campo }: { tenantId: string; campo: string }) {
           setNome("");
           carregar();
         }}
-        className="flex flex-col gap-3 rounded-xl border border-slate-100 p-4"
+        className="flex flex-col gap-3 rounded-md border border-slate-100 p-4"
       >
         <h2 className="font-medium text-slate-900">Nova automação</h2>
         <input className={campo} placeholder="Nome" value={nome} onChange={(e) => setNome(e.target.value)} />
@@ -374,7 +374,7 @@ function StudioTab({ tenantId, campo }: { tenantId: string; campo: string }) {
         <button className="rounded-lg bg-primary px-4 py-2 text-sm font-medium text-white hover:bg-primary-600">Criar automação</button>
         {resultado && <p className="text-sm text-slate-600">{resultado}</p>}
       </form>
-      <div className="rounded-xl border border-slate-100 p-4">
+      <div className="rounded-md border border-slate-100 p-4">
         <h2 className="mb-3 font-medium text-slate-900">Automações</h2>
         {automacoes.length === 0 ? (
           <p className="text-sm text-slate-500">Nenhuma automação configurada.</p>

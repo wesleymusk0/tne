@@ -5,6 +5,7 @@ import { useCallback, useState } from "react";
 import { AppShell } from "@/components/AppShell";
 import { api, ApiError } from "@/lib/api";
 import { useAuth } from "@/lib/auth";
+import { menuParaSistema } from "@/lib/menu";
 
 interface Restricao {
   type: "must" | "cannot" | "prefer";
@@ -43,10 +44,7 @@ export default function RemanejiaPage() {
   const [gerando, setGerando] = useState(false);
   const [modoLink, setModoLink] = useState(false);
 
-  const menuItens = [
-    { href: "/dashboard", rotulo: "Dashboard", icone: "🏠" },
-    { href: "/sistemas/remanejia", rotulo: "RemanejIA", icone: "🔀" },
-  ];
+  const menuItens = menuParaSistema("remanejia");
 
   function adicionar() {
     if (!form.name.trim()) return;
@@ -88,7 +86,7 @@ export default function RemanejiaPage() {
     <AppShell titulo="RemanejIA — Enturmação Inteligente" itens={menuItens}>
       <div className="grid gap-6 lg:grid-cols-[340px,1fr]">
         <section className="flex flex-col gap-3">
-          <div className="rounded-xl border border-slate-100 p-3">
+          <div className="rounded-md border border-slate-100 p-3">
             <div className="grid grid-cols-2 gap-2">
               <input className="rounded-lg border border-slate-200 px-2 py-1.5 text-sm" placeholder="Nome" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} />
               <input className="rounded-lg border border-slate-200 px-2 py-1.5 text-sm" placeholder="Matrícula" value={form.matricula} onChange={(e) => setForm({ ...form, matricula: e.target.value })} />
@@ -160,7 +158,7 @@ export default function RemanejiaPage() {
             ))}
           </ul>
 
-          <div className="rounded-xl border border-slate-100 p-3 text-sm">
+          <div className="rounded-md border border-slate-100 p-3 text-sm">
             <label className="text-xs font-medium text-slate-500">Número de turmas</label>
             <div className="mt-1 flex items-center gap-3">
               <input type="range" min={2} max={8} value={numClasses} onChange={(e) => setNumClasses(Number(e.target.value))} className="flex-1" />
@@ -209,7 +207,7 @@ export default function RemanejiaPage() {
           {resultado ? (
             <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
               {Object.entries(resultado.classes).map(([turma, alunosT]) => (
-                <div key={turma} className="rounded-xl border border-slate-100 p-4">
+                <div key={turma} className="rounded-md border border-slate-100 p-4">
                   <div className="flex items-baseline justify-between">
                     <h3 className="font-semibold text-slate-900">Turma {turma}</h3>
                     <span className="text-xs text-slate-400">{alunosT.length} alunos</span>
@@ -228,14 +226,14 @@ export default function RemanejiaPage() {
                 </div>
               ))}
               {resultado.fixos && resultado.fixos.length > 0 && (
-                <div className="col-span-full rounded-xl border border-amber-100 bg-amber-50 p-4 text-sm">
+                <div className="col-span-full rounded-md border border-amber-100 bg-amber-50 p-4 text-sm">
                   <strong>Mantidos nas turmas originais (mistura {mix}%):</strong>{" "}
                   {resultado.fixos.map((f) => f.name).join(", ")}
                 </div>
               )}
             </div>
           ) : (
-            <div className="rounded-xl border border-dashed border-slate-200 p-8 text-sm text-slate-500">
+            <div className="rounded-md border border-dashed border-slate-200 p-8 text-sm text-slate-500">
               Configure os alunos, restrições e prioridades à esquerda e gere a enturmação. O percentual de mistura controla quanto as turmas serão embaralhadas (100% = embaralhamento total; 0% = preserva turmas originais).
             </div>
           )}

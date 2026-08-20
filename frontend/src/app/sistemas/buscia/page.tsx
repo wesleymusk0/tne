@@ -5,6 +5,7 @@ import { useCallback, useEffect, useState } from "react";
 import { AppShell } from "@/components/AppShell";
 import { api, ApiError } from "@/lib/api";
 import { useAuth } from "@/lib/auth";
+import { menuParaSistema } from "@/lib/menu";
 
 interface Turma {
   id: string;
@@ -44,10 +45,7 @@ export default function BusciaPage() {
   const [instituicao, setInstituicao] = useState("");
   const [msg, setMsg] = useState("");
 
-  const menuItens = [
-    { href: "/dashboard", rotulo: "Dashboard", icone: "🏠" },
-    { href: "/sistemas/buscia", rotulo: "BuscIA", icone: "📞" },
-  ];
+  const menuItens = menuParaSistema("buscia");
 
   useEffect(() => {
     if (!tenantAtivo) return;
@@ -119,7 +117,7 @@ export default function BusciaPage() {
   return (
     <AppShell titulo="BuscIA — Busca Ativa" itens={menuItens}>
       <div className="max-w-3xl">
-        <div className="mb-4 grid gap-3 rounded-xl border border-slate-100 p-4 sm:grid-cols-4">
+        <div className="mb-4 grid gap-3 rounded-md border border-slate-100 p-4 sm:grid-cols-4">
           <div className="flex flex-col gap-1">
             <label className="text-xs font-medium text-slate-500">Turma</label>
             <select className="rounded-lg border border-slate-200 px-3 py-2 text-sm" value={turmaId} onChange={(e) => setTurmaId(e.target.value)}>
@@ -160,7 +158,7 @@ export default function BusciaPage() {
           <>
             <ul className="flex flex-col gap-2">
               {mensagens.map((m, i) => (
-                <li key={i} className="rounded-xl border border-slate-100 p-3 text-sm">
+                <li key={i} className="rounded-md border border-slate-100 p-3 text-sm">
                   <div className="flex items-center justify-between">
                     <span className="font-medium text-slate-900">{alunos.find((a) => a.alunoId === m.alunoId)?.nome}</span>
                     <span className="text-xs text-slate-400">{m.telefone || "sem telefone"}</span>

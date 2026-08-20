@@ -97,7 +97,7 @@ export default function AdminGlobalPage() {
                 setSistemas([]);
               });
             }}
-            className="flex flex-col gap-3 rounded-xl border border-slate-100 p-4"
+            className="flex flex-col gap-3 rounded-md border border-slate-100 p-4"
           >
             <h2 className="font-medium text-slate-900">Nova instituição</h2>
             <input
@@ -126,7 +126,7 @@ export default function AdminGlobalPage() {
           <div className="lg:col-span-2">
             <ul className="flex flex-col gap-2">
               {insts.map((i) => (
-                <li key={i.id} className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-slate-100 p-4">
+                <li key={i.id} className="flex flex-wrap items-center justify-between gap-3 rounded-md border border-slate-100 p-4">
                   <div>
                     <div className="font-medium text-slate-900">{i.nome}</div>
                     <div className="text-xs text-slate-500">
@@ -171,19 +171,19 @@ export default function AdminGlobalPage() {
       {aba === "stats" && stats && (
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
           {Object.entries(stats).filter(([k]) => k !== "planos").map(([k, v]) => (
-            <div key={k} className="rounded-xl border border-slate-100 p-4 shadow-sm">
+            <div key={k} className="rounded-md border border-slate-100 p-4 shadow-sm">
               <div className="text-2xl font-semibold text-slate-900">{String(v)}</div>
               <div className="text-xs font-medium uppercase tracking-wide text-slate-500">{k}</div>
             </div>
           ))}
-          <div className="col-span-full rounded-xl border border-slate-100 p-4 text-sm text-slate-600">
+          <div className="col-span-full rounded-md border border-slate-100 p-4 text-sm text-slate-600">
             Planos: {JSON.stringify(stats.planos)}
           </div>
         </div>
       )}
 
       {aba === "audit" && (
-        <div className="overflow-x-auto rounded-xl border border-slate-100">
+        <div className="overflow-x-auto rounded-md border border-slate-100">
           <table className="w-full text-left text-sm">
             <thead className="bg-slate-50 text-xs uppercase text-slate-500">
               <tr>

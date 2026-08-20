@@ -58,7 +58,7 @@ export default function TurmasPage() {
 
   return (
     <AppShell titulo="Turmas" itens={itens}>
-      <form onSubmit={criar} className="mb-6 flex flex-wrap items-end gap-3 rounded-xl border border-slate-100 p-4">
+      <form onSubmit={criar} className="mb-6 flex flex-wrap items-end gap-3 rounded-md border border-slate-100 p-4">
         <div className="flex flex-col gap-1">
           <label className="text-xs font-medium text-slate-500">Nome da turma</label>
           <input
@@ -89,13 +89,13 @@ export default function TurmasPage() {
       </form>
 
       {turmas.length === 0 ? (
-        <p className="rounded-xl border border-dashed border-slate-200 p-6 text-sm text-slate-500">
+        <p className="rounded-md border border-dashed border-slate-200 p-6 text-sm text-slate-500">
           Nenhuma turma cadastrada. Crie a estrutura de turmas antes de cadastrar alunos.
         </p>
       ) : (
         <ul className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
           {turmas.map((t) => (
-            <li key={t.id} className="flex items-center justify-between rounded-xl border border-slate-100 p-4 shadow-sm">
+            <li key={t.id} className="flex items-center justify-between rounded-md border border-slate-100 p-4 shadow-sm">
               <div>
                 <div className="font-medium text-slate-900">{t.nome}</div>
                 <div className="text-xs text-slate-500">

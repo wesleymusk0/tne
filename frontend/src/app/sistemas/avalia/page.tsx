@@ -5,6 +5,7 @@ import { useState } from "react";
 import { AppShell } from "@/components/AppShell";
 import { api, ApiError } from "@/lib/api";
 import { useAuth } from "@/lib/auth";
+import { menuParaSistema } from "@/lib/menu";
 
 const AREAS: { id: string; nome: string; max: number }[] = [
   { id: "tea", nome: "Transtorno do Espectro Autista (TEA)", max: 30 },
@@ -35,10 +36,7 @@ export default function AvaliaPage() {
   const [msg, setMsg] = useState("");
   const [gerando, setGerando] = useState(false);
 
-  const menuItens = [
-    { href: "/dashboard", rotulo: "Dashboard", icone: "🏠" },
-    { href: "/sistemas/avalia", rotulo: "AvalIA", icone: "🧭" },
-  ];
+  const menuItens = menuParaSistema("avalia");
 
   async function gerar() {
     setGerando(true);
@@ -83,7 +81,7 @@ export default function AvaliaPage() {
         />
         <div className="flex flex-col gap-4">
           {AREAS.map((area) => (
-            <div key={area.id} className="rounded-xl border border-slate-100 p-4">
+            <div key={area.id} className="rounded-md border border-slate-100 p-4">
               <h3 className="font-medium text-slate-900">{area.nome}</h3>
               <div className="mt-2 flex flex-wrap items-center gap-3">
                 <span className="text-xs text-slate-500">Pontuação (0–{area.max})</span>
@@ -115,7 +113,7 @@ export default function AvaliaPage() {
               if (!r) return null;
               const cor = r.nivel === "Alto" ? "bg-red-50 text-red-800 border-red-200" : r.nivel === "Moderado" ? "bg-amber-50 text-amber-800 border-amber-200" : "bg-green-50 text-green-800 border-green-200";
               return (
-                <div key={area.id} className={`rounded-xl border p-4 ${cor}`}>
+                <div key={area.id} className={`rounded-md border p-4 ${cor}`}>
                   <div className="flex items-center justify-between">
                     <h3 className="font-semibold">{area.nome}</h3>
                     <span className="rounded-full bg-white/70 px-3 py-0.5 text-xs font-semibold">{r.nivel}</span>

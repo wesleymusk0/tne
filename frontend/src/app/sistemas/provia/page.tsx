@@ -5,6 +5,7 @@ import { useState } from "react";
 import { AppShell } from "@/components/AppShell";
 import { api, ApiError } from "@/lib/api";
 import { useAuth } from "@/lib/auth";
+import { menuParaSistema } from "@/lib/menu";
 
 interface Questao {
   enunciado: string;
@@ -21,10 +22,7 @@ export default function ProviaPage() {
   const [msg, setMsg] = useState("");
   const [modo, setModo] = useState<"editar" | "imprimir">("editar");
 
-  const menuItens = [
-    { href: "/dashboard", rotulo: "Dashboard", icone: "🏠" },
-    { href: "/sistemas/provia", rotulo: "ProvIA", icone: "📄" },
-  ];
+  const menuItens = menuParaSistema("provia");
 
   const limiteFree = perfil?.plano.tipo === "free" && !tenantAtivo ? 4 : null;
 
@@ -52,7 +50,7 @@ export default function ProviaPage() {
   return (
     <AppShell titulo="ProvIA — Montagem de Provas" itens={menuItens}>
       <div className="max-w-4xl">
-        <div className="mb-4 grid gap-3 rounded-xl border border-slate-100 p-4 sm:grid-cols-4">
+        <div className="mb-4 grid gap-3 rounded-md border border-slate-100 p-4 sm:grid-cols-4">
           {(
             [
               ["instituicao", "Instituição"],
@@ -76,7 +74,7 @@ export default function ProviaPage() {
           <>
             <div className="flex flex-col gap-4">
               {questoes.map((q, i) => (
-                <div key={i} className="rounded-xl border border-slate-100 p-4">
+                <div key={i} className="rounded-md border border-slate-100 p-4">
                   <div className="flex items-center justify-between">
                     <h3 className="font-medium text-slate-900">Questão {i + 1}</h3>
                     <button onClick={() => setQuestoes(questoes.filter((_, j) => j !== i))} className="text-red-600">✕</button>
@@ -127,7 +125,7 @@ export default function ProviaPage() {
             </div>
           </>
         ) : (
-          <div className="rounded-xl border border-slate-100 bg-white p-8 shadow-sm" id="prova-print">
+          <div className="rounded-md border border-slate-100 bg-white p-8 shadow-sm" id="prova-print">
             <div className="text-center">
               <h2 className="font-bold text-slate-900">{meta.instituicao || "Instituição"}</h2>
               <p className="text-sm text-slate-600">

@@ -128,7 +128,7 @@ export default function PresencaPage() {
       </div>
 
       {alunos.length === 0 ? (
-        <p className="rounded-xl border border-dashed border-slate-200 p-6 text-sm text-slate-500">
+        <p className="rounded-md border border-dashed border-slate-200 p-6 text-sm text-slate-500">
           Nenhum aluno nesta turma.
         </p>
       ) : (
@@ -136,7 +136,7 @@ export default function PresencaPage() {
           {alunos.map((a) => {
             const reg = registros[a.id] ?? { estado: "C" as Estado };
             return (
-              <li key={a.id} className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-slate-100 p-3">
+              <li key={a.id} className="flex flex-wrap items-center justify-between gap-3 rounded-md border border-slate-100 p-3">
                 <div className="text-sm">
                   <span className="mr-2 text-slate-400">{a.numeroChamada ?? "—"}</span>
                   <span className="font-medium text-slate-900">{a.nome}</span>

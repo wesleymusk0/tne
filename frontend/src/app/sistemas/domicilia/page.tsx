@@ -5,6 +5,7 @@ import { useCallback, useEffect, useState } from "react";
 import { AppShell } from "@/components/AppShell";
 import { api, ApiError } from "@/lib/api";
 import { useAuth } from "@/lib/auth";
+import { menuParaSistema } from "@/lib/menu";
 
 interface Turma {
   id: string;
@@ -51,10 +52,7 @@ export default function DomiciliaPage() {
   const [anexos, setAnexos] = useState("");
   const [msg, setMsg] = useState("");
 
-  const menuItens = [
-    { href: "/dashboard", rotulo: "Dashboard", icone: "🏠" },
-    { href: "/sistemas/domicilia", rotulo: "DomicilIA", icone: "🏠" },
-  ];
+  const menuItens = menuParaSistema("domicilia");
 
   const carregar = useCallback(() => {
     if (!tenantAtivo) return;
@@ -128,7 +126,7 @@ export default function DomiciliaPage() {
     <AppShell titulo="DomicilIA — Atividades Domiciliares" itens={menuItens}>
       <div className="grid gap-6 lg:grid-cols-2">
         <div className="flex flex-col gap-4">
-          <div className="rounded-xl border border-slate-100 p-4">
+          <div className="rounded-md border border-slate-100 p-4">
             <h2 className="mb-3 font-medium text-slate-900">Nova atividade domiciliar</h2>
             <div className="flex flex-col gap-2">
               <select className="rounded-lg border border-slate-200 px-3 py-2 text-sm" value={turmaId} onChange={(e) => setTurmaId(e.target.value)}>
@@ -172,7 +170,7 @@ export default function DomiciliaPage() {
             </div>
           </div>
 
-          <div className="rounded-xl border border-slate-100 p-4">
+          <div className="rounded-md border border-slate-100 p-4">
             <h2 className="mb-3 font-medium text-slate-900">Configuração da instituição</h2>
             <div className="flex flex-col gap-2 text-sm">
               <label className="flex flex-col gap-1">
@@ -215,11 +213,11 @@ export default function DomiciliaPage() {
           {msg && <p className="mb-3 rounded-lg bg-slate-50 p-3 text-sm text-slate-600">{msg}</p>}
           <h2 className="mb-3 font-medium text-slate-900">Atividades ({atividades.length})</h2>
           {atividades.length === 0 ? (
-            <p className="rounded-xl border border-dashed border-slate-200 p-6 text-sm text-slate-500">Nenhuma atividade cadastrada.</p>
+            <p className="rounded-md border border-dashed border-slate-200 p-6 text-sm text-slate-500">Nenhuma atividade cadastrada.</p>
           ) : (
             <ul className="flex flex-col gap-2">
               {atividades.map((a) => (
-                <li key={a.id} className="rounded-xl border border-slate-100 p-4 text-sm">
+                <li key={a.id} className="rounded-md border border-slate-100 p-4 text-sm">
                   <div className="flex items-start justify-between gap-3">
                     <div>
                       <div className="font-medium text-slate-900">{alunos.find((x) => x.id === a.alunoId)?.nome ?? a.alunoId}</div>
