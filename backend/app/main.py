@@ -48,6 +48,19 @@ def config_publica():
     }
 
 
+@app.put("/me")
+def upsert_me(body: dict, usuario: UsuarioAtual = Depends(get_usuario_atual)):
+    """Bootstrap do próprio perfil (nome/e-mail). Não altera plano nem vínculos."""
+    atualizacao = {}
+    if body.get("nome"):
+        atualizacao["nome"] = str(body["nome"]).strip()
+    if body.get("email"):
+        atualizacao["email"] = str(body["email"]).strip().lower()
+    if atualizacao:
+        db.update(f"users/{usuario.uid}", atualizacao)
+    return {"sucesso": True}
+
+
 @app.get("/me")
 def me(usuario: UsuarioAtual = Depends(get_usuario_atual)):
     vinculos = {}
