@@ -14,9 +14,9 @@ import time
 import httpx
 from fastapi import APIRouter, Depends, HTTPException, Request
 
-from .. import config, db
-from ..core import audit
-from ..core.auth import UsuarioAtual, get_usuario_atual
+from app import config, db
+from app.core import audit
+from app.core.auth import UsuarioAtual, get_usuario_atual
 
 router = APIRouter(prefix="/billing", tags=["billing"])
 

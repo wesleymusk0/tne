@@ -7,10 +7,10 @@ import time
 
 from fastapi import APIRouter, Depends, HTTPException
 
-from .. import db
-from ..core.access import checar_contexto
-from ..core.auth import UsuarioAtual, get_usuario_atual
-from ..core.permissions import tem_permissao
+from app import db
+from app.core.access import checar_contexto
+from app.core.auth import UsuarioAtual, get_usuario_atual
+from app.core.permissions import tem_permissao
 
 router = APIRouter(prefix="/academico", tags=["academico"])
 

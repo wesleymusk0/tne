@@ -9,9 +9,9 @@ import time
 
 from fastapi import APIRouter, Depends, HTTPException
 
-from .. import db
-from ..core import audit, permissions
-from ..core.auth import UsuarioAtual, exigir_admin_global
+from app import db
+from app.core import audit, permissions
+from app.core.auth import UsuarioAtual, exigir_admin_global
 
 router = APIRouter(prefix="/admin-global", tags=["admin-global"])
 

@@ -8,7 +8,7 @@ from dataclasses import dataclass, field
 from fastapi import Depends, Header, HTTPException
 from firebase_admin import auth as fb_auth
 
-from .. import db
+from app import db
 
 
 @dataclass
