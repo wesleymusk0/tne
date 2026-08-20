@@ -3,9 +3,10 @@
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 
-import { AppShell, MenuItem } from "@/components/AppShell";
+import { AppShell } from "@/components/AppShell";
 import { api } from "@/lib/api";
 import { useAuth } from "@/lib/auth";
+import { useMenuItens } from "@/lib/menu";
 
 const SISTEMAS: Record<string, { nome: string; descricao: string; href: string; icone: string }> = {
   mapia: { nome: "MapIA", descricao: "Mapas de sala inteligentes", href: "/sistemas/mapia", icone: "🗺️" },
@@ -70,21 +71,7 @@ export default function DashboardPage() {
     api.get<Dash & { sucesso: boolean }>(`/dashboard/${tenantAtivo}${qs}`).then(setDash).catch(() => setDash(null));
   }, [tenantAtivo, periodo]);
 
-  const itens: MenuItem[] = useMemo(() => {
-    const base: MenuItem[] = [{ href: "/dashboard", rotulo: "Dashboard", icone: "🏠" }];
-    if (tenantAtivo) {
-      base.push(
-        { href: "/gestao/turmas", rotulo: "Turmas", icone: "🏫" },
-        { href: "/gestao/alunos", rotulo: "Alunos", icone: "🎓" },
-        { href: "/gestao/presenca", rotulo: "Presença", icone: "✅" },
-        { href: "/gestao/notas", rotulo: "Notas e Boletins", icone: "📝" },
-        { href: "/instituicao", rotulo: "Instituição", icone: "⚙️" }
-      );
-    }
-    base.push({ href: "/assinatura", rotulo: "Assinatura", icone: "💳" });
-    if (perfil?.adminGlobal) base.push({ href: "/admin", rotulo: "Administração Global", icone: "🌐" });
-    return base;
-  }, [tenantAtivo, perfil?.adminGlobal]);
+  const itens = useMenuItens(perfil, tenantAtivo);
 
   return (
     <AppShell titulo="Dashboard" itens={itens}>

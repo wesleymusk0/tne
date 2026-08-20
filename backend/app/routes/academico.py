@@ -167,6 +167,15 @@ def consultar_presenca(tenant_id: str, data: str | None = None, turmaId: str | N
 
 
 # --- Configuração de avaliação (sistemas de notas) ------------------------------
+@router.get("/{tenant_id}/config-avaliacao")
+def obter_config_avaliacao(tenant_id: str, usuario: UsuarioAtual = Depends(get_usuario_atual)):
+    _cargo(usuario, tenant_id)
+    cfg = db.tenant_get(tenant_id, "configAvaliacao")
+    if not cfg:
+        raise HTTPException(status_code=404, detail="Sistema de avaliação não configurado.")
+    return {"sucesso": True, "config": cfg}
+
+
 @router.put("/{tenant_id}/config-avaliacao")
 def configurar_avaliacao(tenant_id: str, body: dict, usuario: UsuarioAtual = Depends(get_usuario_atual)):
     """Configura o sistema de avaliação da instituição (TNE §23).
