@@ -1,10 +1,10 @@
 """Verificação de contexto de acesso (plano individual ou instituição)."""
 from fastapi import HTTPException
 
-from .. import db
-from . import plans
-from .auth import UsuarioAtual
-from .permissions import tem_permissao
+from app import db
+from app.core import plans
+from app.core.auth import UsuarioAtual
+from app.core.permissions import tem_permissao
 
 
 def checar_contexto(usuario: UsuarioAtual, tenant_id: str | None, sistema: str, acao: str = "criar") -> dict:

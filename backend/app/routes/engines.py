@@ -5,11 +5,11 @@ import time
 
 from fastapi import APIRouter, Depends, HTTPException
 
-from .. import db
-from ..core import plans
-from ..core.access import checar_contexto
-from ..core.auth import UsuarioAtual, get_usuario_atual
-from ..engines import avalia, horia, mapia, remanejia, somatoria, tri
+from app import db
+from app.core import plans
+from app.core.access import checar_contexto
+from app.core.auth import UsuarioAtual, get_usuario_atual
+from app.engines import avalia, horia, mapia, remanejia, somatoria, tri
 
 router = APIRouter(prefix="/engines", tags=["engines"])
 

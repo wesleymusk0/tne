@@ -6,7 +6,7 @@ dado é institucional. Nenhum módulo deve chamar firebase_admin.db diretamente.
 import firebase_admin
 from firebase_admin import credentials, db
 
-from . import config
+from app import config
 
 _app = None
 

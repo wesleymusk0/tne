@@ -4,11 +4,11 @@ import time
 import httpx
 from fastapi import APIRouter, Depends, HTTPException
 
-from .. import config, db
-from ..core import audit, plans
-from ..core.access import checar_contexto
-from ..core.auth import UsuarioAtual, get_usuario_atual
-from ..core.permissions import tem_permissao
+from app import config, db
+from app.core import audit, plans
+from app.core.access import checar_contexto
+from app.core.auth import UsuarioAtual, get_usuario_atual
+from app.core.permissions import tem_permissao
 
 router = APIRouter(tags=["modulos"])
 

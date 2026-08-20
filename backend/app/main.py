@@ -2,10 +2,10 @@
 from fastapi import Depends, FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from . import config, db
-from .core.auth import UsuarioAtual, get_usuario_atual
-from .core.permissions import sistemas_visiveis
-from .routes import academico, admin_global, billing, engines, modulos, projetos, tenants
+from app import config, db
+from app.core.auth import UsuarioAtual, get_usuario_atual
+from app.core.permissions import sistemas_visiveis
+from app.routes import academico, admin_global, billing, engines, modulos, projetos, tenants
 
 app = FastAPI(title="Systematrix TNE API", version="1.0.0")
 
