@@ -1,0 +1,53 @@
+{
+  "arrangement": [
+    {
+      "name": "Diego",
+      "seat": "A3"
+    },
+    {
+      "name": "Joao",
+      "seat": "A2"
+    },
+    {
+      "name": "Ana",
+      "seat": "A1"
+    },
+    {
+      "name": "Bruno",
+      "seat": "B3"
+    },
+    {
+      "name": "Carla",
+      "seat": "B2"
+    },
+    {
+      "name": "Elisa",
+      "seat": "B1"
+    },
+    {
+      "name": "Lia",
+      "seat": "C3"
+    },
+    {
+      "name": "Gabi",
+      "seat": "C1"
+    },
+    {
+      "name": "Fabio",
+      "seat": "D1"
+    },
+    {
+      "name": "Hugo",
+      "seat": "D3"
+    },
+    {
+      "name": "Iris",
+      "seat": "C2"
+    },
+    {
+      "name": "Mauro",
+      "seat": "D2"
+    }
+  ],
+  "sucesso": true
+}

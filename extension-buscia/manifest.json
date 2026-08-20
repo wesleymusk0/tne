@@ -1,0 +1,32 @@
+{
+  "manifest_version": 3,
+  "name": "BuscIA — Systematrix",
+  "version": "1.0.0",
+  "description": "Envia buscas de faltas/atrasos pelo WhatsApp Web. Reutiliza a aba aberta; nunca abre uma nova por mensagem.",
+  "permissions": ["tabs", "scripting"],
+  "host_permissions": [
+    "https://web.whatsapp.com/*",
+    "https://*.systematrix.com.br/*",
+    "http://localhost/*",
+    "http://localhost:3000/*"
+  ],
+  "content_scripts": [
+    {
+      "matches": ["*://*.systematrix.com.br/*", "http://localhost/*", "http://localhost:3000/*"],
+      "js": ["ponte.js"],
+      "run_at": "document_idle"
+    },
+    {
+      "matches": ["https://web.whatsapp.com/*"],
+      "js": ["whatsapp.js"],
+      "run_at": "document_idle"
+    }
+  ],
+  "background": {
+    "service_worker": "background.js"
+  },
+  "action": {
+    "default_title": "BuscIA",
+    "default_popup": "popup.html"
+  }
+}

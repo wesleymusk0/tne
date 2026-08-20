@@ -1,0 +1,162 @@
+{
+  "classes": [
+    [
+      {
+        "constraints": [
+          {
+            "targetId": "s1",
+            "type": "prefer"
+          }
+        ],
+        "gender": "M",
+        "id": "s8",
+        "matricula": "107",
+        "name": "Aluno 8",
+        "originalClass": "6A",
+        "score": 2
+      },
+      {
+        "constraints": [
+          {
+            "targetId": "s4",
+            "type": "cannot"
+          }
+        ],
+        "gender": "M",
+        "id": "s3",
+        "matricula": "102",
+        "name": "Aluno 3",
+        "originalClass": "6B",
+        "score": 5
+      },
+      {
+        "constraints": [
+          {
+            "targetId": "s6",
+            "type": "prefer"
+          }
+        ],
+        "gender": "F",
+        "id": "s5",
+        "matricula": "104",
+        "name": "Aluno 5",
+        "originalClass": "6A",
+        "score": 4
+      },
+      {
+        "constraints": [
+          {
+            "targetId": "s2",
+            "type": "must"
+          }
+        ],
+        "gender": "M",
+        "id": "s1",
+        "matricula": "100",
+        "name": "Aluno 1",
+        "originalClass": "6A",
+        "score": 4
+      },
+      {
+        "constraints": [
+          {
+            "targetId": "s1",
+            "type": "must"
+          }
+        ],
+        "gender": "F",
+        "id": "s2",
+        "matricula": "101",
+        "name": "Aluno 2",
+        "originalClass": "6A",
+        "score": 3
+      },
+      {
+        "constraints": [],
+        "gender": "M",
+        "id": "s6",
+        "matricula": "105",
+        "name": "Aluno 6",
+        "originalClass": "6C",
+        "score": 3
+      }
+    ],
+    [],
+    [
+      {
+        "constraints": [
+          {
+            "targetId": "s3",
+            "type": "cannot"
+          }
+        ],
+        "gender": "F",
+        "id": "s4",
+        "matricula": "103",
+        "name": "Aluno 4",
+        "originalClass": "6B",
+        "score": 2
+      },
+      {
+        "constraints": [],
+        "gender": "F",
+        "id": "s9",
+        "matricula": "108",
+        "name": "Aluno 9",
+        "originalClass": "6B",
+        "score": 5
+      },
+      {
+        "constraints": [],
+        "gender": "M",
+        "id": "s10",
+        "matricula": "109",
+        "name": "Aluno 10",
+        "originalClass": "6C",
+        "score": 3
+      },
+      {
+        "constraints": [],
+        "gender": "F",
+        "id": "s7",
+        "matricula": "106",
+        "name": "Aluno 7",
+        "originalClass": "6C",
+        "score": 1
+      },
+      {
+        "constraints": [],
+        "gender": "M",
+        "id": "s12",
+        "matricula": "111",
+        "name": "Aluno 12",
+        "originalClass": "6B",
+        "score": 2
+      },
+      {
+        "constraints": [],
+        "gender": "F",
+        "id": "s11",
+        "matricula": "110",
+        "name": "Aluno 11",
+        "originalClass": "6A",
+        "score": 4
+      }
+    ]
+  ],
+  "metrics": {
+    "balancePct": 43.431457505076196,
+    "mandatoryPct": 100.0,
+    "preferPct": 100.0,
+    "stats": {
+      "cannotTotal": 2,
+      "cannotViolated": 0,
+      "mandatoryMet": 2,
+      "mandatoryTotal": 2,
+      "preferMet": 2,
+      "preferTotal": 2
+    },
+    "totalScore": 81.14381916835873
+  },
+  "sucesso": true
+}

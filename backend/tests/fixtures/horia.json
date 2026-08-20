@@ -1,0 +1,136 @@
+{
+  "sucesso": true,
+  "mensagem": "Sucesso! OPTIMAL",
+  "horarios_turmas": {
+    "6A": [
+      [
+        "MAT\n(Prof Maria)",
+        "MAT\n(Prof Maria)",
+        "",
+        "PORT\n(Prof Joao)"
+      ],
+      [
+        "MAT\n(Prof Maria)",
+        "PORT\n(Prof Joao)",
+        "",
+        "PORT\n(Prof Joao)"
+      ],
+      [
+        "",
+        "",
+        "",
+        ""
+      ],
+      [
+        "",
+        "",
+        "",
+        ""
+      ],
+      [
+        "",
+        "",
+        "",
+        ""
+      ]
+    ],
+    "7A": [
+      [
+        "",
+        "",
+        "",
+        ""
+      ],
+      [
+        "",
+        "",
+        "",
+        ""
+      ],
+      [
+        "",
+        "MAT\n(Prof Maria)",
+        "MAT\n(Prof Maria)",
+        "MAT\n(Prof Maria)"
+      ],
+      [
+        "",
+        "",
+        "",
+        "PORT\n(Prof Joao)"
+      ],
+      [
+        "",
+        "PORT\n(Prof Joao)",
+        "",
+        "PORT\n(Prof Joao)"
+      ]
+    ]
+  },
+  "horarios_professores": {
+    "Prof Maria": [
+      [
+        "MAT\n(6A)",
+        "MAT\n(6A)",
+        "HA",
+        "HA"
+      ],
+      [
+        "MAT\n(6A)",
+        "",
+        "",
+        ""
+      ],
+      [
+        "",
+        "MAT\n(7A)",
+        "MAT\n(7A)",
+        "MAT\n(7A)"
+      ],
+      [
+        "",
+        "",
+        "",
+        ""
+      ],
+      [
+        "",
+        "",
+        "",
+        ""
+      ]
+    ],
+    "Prof Joao": [
+      [
+        "HA",
+        "",
+        "",
+        "PORT\n(6A)"
+      ],
+      [
+        "",
+        "PORT\n(6A)",
+        "",
+        "PORT\n(6A)"
+      ],
+      [
+        "",
+        "",
+        "",
+        ""
+      ],
+      [
+        "",
+        "",
+        "",
+        "PORT\n(7A)"
+      ],
+      [
+        "",
+        "PORT\n(7A)",
+        "",
+        "PORT\n(7A)"
+      ]
+    ]
+  }
+}

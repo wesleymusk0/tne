@@ -1,0 +1,7 @@
+{
+  "comment": "Systematrix TNE — RTDB default-deny. Todo acesso a dados é mediado pelo backend (Admin SDK ignora estas regras). O frontend usa apenas Firebase Authentication e a API FastAPI. Publicado com `firebase deploy --only database`.",
+  "rules": {
+    ".read": false,
+    ".write": false
+  }
+}

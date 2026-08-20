@@ -1364,3 +1364,20 @@ O objetivo é produzir uma \*\*Systematrix funcional, íntegra, testada e compat
 
 
 
+
+---
+
+## Apêndice — Notas de auditoria TNE (2026-08-19)
+
+Fatos verificados do repositório (memória para futuras sessões):
+
+- Backend: Flask monolítico `server.py` (1243 linhas) em PythonAnywhere (`systematrix.pythonanywhere.com`). Rotas: `/mapia/gerar`, `/remanejia/gerar`, `/avalia/gerar`, `/somatoria/calcular`, `/tri/analise`, `/gerar_horario`, `/otimizar_janelas`, `/balancear_carga`, `/alocar_ha`, `/otimizar_dias`. `processar_requisicao_horario` é código morto.
+- Backend NÃO verifica Firebase ID token (confia no `uid` do JSON) — falha crítica. 4 rotas de otimização do HorIA sem verificação de licença.
+- Firebase projeto único atual: `systematrix-apps` (RTDB + Auth e-mail/senha). Legado: 5 projetos por produto (só em `index2.html`).
+- Raízes RTDB: `usuarios_institucionais/{uid}`, `instituicoes/{id}/{personalizacao,acquiredSystems}`, `users/{uid}` (legado), `admins_por_instituicao`, `professores_por_instituicao`, `logs_atividades/{instId}`, `dados_{mapia,horia,somatoria,remanejia,tri}/{uid}`, `escolas/{uid}/{config,professores_pendentes}` (legado HorIA), `horarios_publicos/{schoolUid}/{profId}`, `temp_links`, `config/manutencao`.
+- Workers externos fora do repo: `bepis.systematrix.com.br` (criar contas de professor), `ppc.systematrix.com.br` (checkout MP), `create-preference.cartoonlandiapr.workers.dev` (legado).
+- `zoho.js` contém segredos Zoho hardcoded — rotação/remoção pendente de autorização.
+- Bug conhecido: `horia/index.html` concatena `'/dados_horia' + schoolUid` sem barra.
+- Sem requirements.txt, sem testes, sem CI. SDK Firebase v8 em tudo exceto AvalIA (v9).
+- Documentos de governança da TNE: `AUDITORIA-TNE.md` (inventário com IDs = checklist de regressão) e `PLANO-TNE.md` (plano aguardando aprovação + perguntas de decisão).
+
