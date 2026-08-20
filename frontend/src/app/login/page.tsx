@@ -69,9 +69,9 @@ function LoginForm() {
   return (
     <div className="flex min-h-screen items-center justify-center bg-slate-50 p-4">
       <div className="w-full max-w-sm">
-        <div className="rounded-2xl bg-white p-8 shadow-sm ring-1 ring-slate-100">
+        <div className="rounded-md bg-white p-8 shadow-sm ring-1 ring-slate-100">
           <div className="mb-6 flex flex-col items-center gap-3">
-            <Image src="/systematrix.jpg" alt="Systematrix" width={52} height={52} className="rounded-xl" priority />
+            <Image src="/systematrix.jpg" alt="Systematrix" width={52} height={52} className="rounded-md" priority />
             <h1 className="text-xl font-semibold text-slate-900">Systematrix</h1>
             <p className="text-sm text-slate-500">
               {modo === "entrar" ? "Entre na sua conta" : "Crie sua conta"}

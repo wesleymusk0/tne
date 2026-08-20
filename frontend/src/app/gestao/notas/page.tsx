@@ -170,13 +170,13 @@ export default function NotasPage() {
       </div>
 
       {!disciplina ? (
-        <p className="rounded-xl border border-dashed border-slate-200 p-6 text-sm text-slate-500">
+        <p className="rounded-md border border-dashed border-slate-200 p-6 text-sm text-slate-500">
           Informe a disciplina para lançar notas. O vínculo professor–disciplina–turma pode ser derivado do horário institucional (HorIA).
         </p>
       ) : alunos.length === 0 ? (
-        <p className="rounded-xl border border-dashed border-slate-200 p-6 text-sm text-slate-500">Nenhum aluno nesta turma.</p>
+        <p className="rounded-md border border-dashed border-slate-200 p-6 text-sm text-slate-500">Nenhum aluno nesta turma.</p>
       ) : (
-        <div className="overflow-x-auto rounded-xl border border-slate-100">
+        <div className="overflow-x-auto rounded-md border border-slate-100">
           <table className="w-full text-left text-sm">
             <thead className="bg-slate-50 text-xs uppercase text-slate-500">
               <tr>
@@ -225,7 +225,7 @@ export default function NotasPage() {
 
       {boletim && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4" role="dialog" aria-modal>
-          <div className="max-h-[85vh] w-full max-w-lg overflow-auto rounded-xl bg-white p-6 shadow-xl">
+          <div className="max-h-[85vh] w-full max-w-lg overflow-auto rounded-md bg-white p-6 shadow-xl">
             <div className="mb-4 flex items-start justify-between">
               <div>
                 <h2 className="text-base font-semibold text-slate-900">Boletim — {boletim.aluno.nome}</h2>

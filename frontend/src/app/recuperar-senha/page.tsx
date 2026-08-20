@@ -29,9 +29,9 @@ export default function RecuperarSenhaPage() {
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-slate-50 p-4">
-      <div className="w-full max-w-sm rounded-2xl bg-white p-8 shadow-sm ring-1 ring-slate-100">
+      <div className="w-full max-w-sm rounded-md bg-white p-8 shadow-sm ring-1 ring-slate-100">
         <div className="mb-6 flex flex-col items-center gap-3">
-          <Image src="/systematrix.jpg" alt="Systematrix" width={52} height={52} className="rounded-xl" />
+          <Image src="/systematrix.jpg" alt="Systematrix" width={52} height={52} className="rounded-md" />
           <h1 className="text-xl font-semibold text-slate-900">Recuperar senha</h1>
         </div>
         {enviado ? (

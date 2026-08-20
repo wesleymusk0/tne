@@ -8,6 +8,7 @@ import { useAuth } from "@/lib/auth";
 import { useMenuItens } from "@/lib/menu";
 import { GabaritoTemplate, gerarSvgGabarito, imprimirGabarito } from "@/lib/somatoria-gabarito";
 import { processarScan } from "@/lib/somatoria-scanner";
+import { menuParaSistema } from "@/lib/menu";
 
 type Aba = "modelos" | "correcao" | "scanner";
 
@@ -155,7 +156,7 @@ export default function SomatoriaPage() {
 
       {aba === "modelos" && (
         <div className="grid max-w-3xl gap-4 sm:grid-cols-2">
-          <div className="flex flex-col gap-3 rounded-xl border border-slate-100 p-4">
+          <div className="flex flex-col gap-3 rounded-md border border-slate-100 p-4">
             <label className="text-xs font-medium text-slate-500">Nome do modelo</label>
             <input className={campo} value={template.name} onChange={(e) => setTemplate((t) => ({ ...t, name: e.target.value }))} />
             <label className="text-xs font-medium text-slate-500">Número de questões</label>
@@ -218,7 +219,7 @@ export default function SomatoriaPage() {
               </button>
             </div>
           </div>
-          <div className="rounded-xl border border-slate-100 p-4 text-sm text-slate-600">
+          <div className="rounded-md border border-slate-100 p-4 text-sm text-slate-600">
             <h3 className="mb-2 font-medium text-slate-900">Como funciona</h3>
             <p>O aluno pinta as bolinhas das alternativas; a leitura é feita pela SOMA dos valores pintados.</p>
             <p className="mt-2">Acerto parcial: resposta contida no gabarito pontua proporcionalmente. Qualquer alternativa errada assinalada zera a questão.</p>
@@ -259,7 +260,7 @@ export default function SomatoriaPage() {
             )}
           </div>
           {resultado && (
-            <div className="rounded-xl border border-slate-100 p-4">
+            <div className="rounded-md border border-slate-100 p-4">
               <div className="mb-2 text-lg font-semibold text-slate-900">
                 Nota final: {resultado.total.toFixed(1)}
               </div>
@@ -284,11 +285,11 @@ export default function SomatoriaPage() {
 
           {!cameraAtiva && !captura && (
             <button onClick={iniciarCamera} className="w-fit rounded-lg bg-primary px-4 py-2 text-sm font-medium text-white hover:bg-primary-600">
-              📷 Iniciar câmera
+              Iniciar câmera
             </button>
           )}
           {cameraAtiva && (
-            <div className="rounded-xl border border-slate-100 p-3">
+            <div className="rounded-md border border-slate-100 p-3">
               <video ref={videoRef} autoPlay playsInline className="w-full rounded-lg bg-black" />
               <button onClick={capturarFoto} className="mt-3 rounded-lg bg-primary px-4 py-2 text-sm font-medium text-white hover:bg-primary-600">
                 Capturar foto
@@ -296,12 +297,12 @@ export default function SomatoriaPage() {
             </div>
           )}
           {captura && !cameraAtiva && (
-            <div className="rounded-xl border border-slate-100 p-3">
+            <div className="rounded-md border border-slate-100 p-3">
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img src={scan?.imagemProcessada ?? captura} alt="Gabarito capturado" className="w-full rounded-lg border border-slate-200" />
               <div className="mt-3 flex gap-2">
                 <button onClick={processar} className="rounded-lg bg-primary px-4 py-2 text-sm font-medium text-white hover:bg-primary-600">
-                  {template.answerMode === "manual" ? "🔢 Reconhecer Dígitos" : "Processar e Corrigir"}
+                  {template.answerMode === "manual" ? "Reconhecer dígitos" : "Processar e Corrigir"}
                 </button>
                 <button onClick={iniciarCamera} className="rounded-lg border border-slate-200 px-4 py-2 text-sm text-slate-600 hover:bg-slate-50">
                   Refazer foto
@@ -310,7 +311,7 @@ export default function SomatoriaPage() {
             </div>
           )}
           {scan && (
-            <div className="rounded-xl border border-slate-100 p-4">
+            <div className="rounded-md border border-slate-100 p-4">
               <div className="mb-2 text-lg font-semibold text-slate-900">Nota final: {scan.total.toFixed(1)}</div>
               <pre className="max-h-72 overflow-auto rounded-lg bg-slate-50 p-3 text-xs">{scan.relatorio}</pre>
               <button onClick={imprimirRelatorio} className="mt-3 rounded-lg border border-slate-200 px-4 py-2 text-sm text-slate-600 hover:bg-slate-50">

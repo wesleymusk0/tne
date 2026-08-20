@@ -42,10 +42,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     try {
       const resp = await getPerfil();
       setPerfil(resp);
-      setTenantAtivoState((atual) => {
-        if (atual && resp.vinculos[atual]) return atual;
-        return Object.keys(resp.vinculos)[0] ?? null;
-      });
+      // Contexto pessoal é o padrão: NÃO selecionar instituição automaticamente.
+      // Mantém o tenant apenas se o vínculo ainda existir.
+      setTenantAtivoState((atual) => (atual && resp.vinculos[atual] ? atual : null));
     } catch {
       setPerfil(null);
     }

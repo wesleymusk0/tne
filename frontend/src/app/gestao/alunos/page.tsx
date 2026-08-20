@@ -139,7 +139,7 @@ export default function AlunosPage() {
       </div>
 
       {mostrarForm && (
-        <form onSubmit={cadastrar} className="mb-6 grid grid-cols-1 gap-3 rounded-xl border border-slate-100 p-4 sm:grid-cols-2 lg:grid-cols-4">
+        <form onSubmit={cadastrar} className="mb-6 grid grid-cols-1 gap-3 rounded-md border border-slate-100 p-4 sm:grid-cols-2 lg:grid-cols-4">
           <input className={campo} placeholder="Nome completo *" value={form.nome} onChange={(e) => setCampo("nome", e.target.value)} required />
           <select className={campo} value={form.genero} onChange={(e) => setCampo("genero", e.target.value)}>
             <option value="">Gênero</option>
@@ -210,11 +210,11 @@ export default function AlunosPage() {
       )}
 
       {alunos.length === 0 ? (
-        <p className="rounded-xl border border-dashed border-slate-200 p-6 text-sm text-slate-500">
+        <p className="rounded-md border border-dashed border-slate-200 p-6 text-sm text-slate-500">
           Nenhum aluno encontrado. Crie primeiro a estrutura de turmas e depois cadastre os alunos.
         </p>
       ) : (
-        <div className="overflow-x-auto rounded-xl border border-slate-100">
+        <div className="overflow-x-auto rounded-md border border-slate-100">
           <table className="w-full text-left text-sm">
             <thead className="bg-slate-50 text-xs uppercase text-slate-500">
               <tr>
